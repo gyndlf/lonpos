@@ -2,12 +2,12 @@
 
 # Print functions
 import blessings
+from numpy import ndarray
 
 
-def init() -> blessings.Terminal:
+def init_print() -> blessings.Terminal:
     """Initialize the terminal"""
     return blessings.Terminal()
-
 
 
 def to_emoji(n: int, space=True) -> str:
@@ -21,7 +21,7 @@ def to_emoji(n: int, space=True) -> str:
     return emojis[n]
 
 
-def print_board(board: np.ndarray, placement: int) -> None:
+def print_board(term: blessings.Terminal, board: ndarray, placement: int) -> None:
     """Print the board to the special screen"""
     try:
         buffs = []
@@ -40,7 +40,7 @@ def print_board(board: np.ndarray, placement: int) -> None:
     # print("➖" * 9)
 
 
-def print_remaining(pieces: list) -> None:
+def print_remaining(term: blessings.Terminal, pieces: list) -> None:
     """Print the remaining pieces to play"""
 
     # Assume every piece is 4x4 at max
@@ -60,7 +60,7 @@ def print_remaining(pieces: list) -> None:
     [print(term.clear_eol, i) for i in buffs]
 
 
-def print_place(possible: bool) -> None:
+def print_place(term: blessings.Terminal, possible: bool) -> None:
     """Print the placement stats"""
     global total_placements
     global successful_placements

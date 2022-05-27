@@ -55,6 +55,11 @@ def save_solutions(sols: list, path: str):
     np.save(path, sols)
 
 
+def load_solutions(path: str) -> np.ndarray:
+    """Load a solution from disk"""
+    return np.load(path)
+
+
 def create_permutations(pieces: list = None) -> list:
     """Create all the possible permutations (rotations and flips) of all given pieces.
     A list of a list of different ways"""

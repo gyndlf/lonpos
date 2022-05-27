@@ -4,7 +4,10 @@
 
 from blessings import Terminal
 import time
-from lonpos import *
+
+import lonpos
+
+lonpos.core.ho
 
 
 def report_progress(filename, progress):

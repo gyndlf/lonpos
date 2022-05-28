@@ -4,5 +4,5 @@
 
 from . import core
 from . import prints
-from .run import view
-__all__ = [view]
+from .run import view, live
+__all__ = [view, live]

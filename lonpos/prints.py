@@ -3,6 +3,7 @@
 # Print functions
 import blessings
 from numpy import ndarray
+import time
 
 
 def init_print() -> blessings.Terminal:
@@ -42,7 +43,6 @@ def print_board(term: blessings.Terminal, board: ndarray, placement: int) -> Non
 
 def print_remaining(term: blessings.Terminal, pieces: list) -> None:
     """Print the remaining pieces to play"""
-
     # Assume every piece is 4x4 at max
     buffs = []
     for r in range(4):
@@ -60,15 +60,11 @@ def print_remaining(term: blessings.Terminal, pieces: list) -> None:
     [print(term.clear_eol, i) for i in buffs]
 
 
-def print_place(term: blessings.Terminal, possible: bool) -> None:
+def print_place(term: blessings.Terminal, possible: bool, stats: dict) -> None:
     """Print the placement stats"""
-    global total_placements
-    global successful_placements
-    global tic
-    total_placements += 1
-    successful_placements += possible
+
     print(term.move(2, 0))
-    print(term.bold("{:,}".format(successful_placements)), "successful placements out of",
-          term.bold("{:,}".format(total_placements)), "total placements with",
-          term.bold("{:,}".format(dead_ends)), "dead ends")
-    print("Running time of", term.bold("{:.2f} mins".format((time() - tic) / 60)))
+    print(term.bold("{:,}".format(stats["successful_placements"])), "successful placements out of",
+          term.bold("{:,}".format(stats["total_placements"])), "total placements with",
+          term.bold("{:,}".format(stats["dead_ends"])), "dead ends")
+    print("Running time of", term.bold("{:.2f} mins".format((time.time() - stats["tic"]) / 60)))

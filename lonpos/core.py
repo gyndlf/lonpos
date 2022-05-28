@@ -2,6 +2,7 @@
 # Algorithm core
 
 import numpy as np
+import time
 
 
 # convention
@@ -115,18 +116,26 @@ def place(board: np.ndarray, piece: np.ndarray, x: int, y: int) -> (bool, np.nda
     return False, board
 
 
-def compute(board: np.ndarray = None, perms: list = None, i=0, j=0, pieces: list = None, wait=False):
+def compute(board: np.ndarray = None, perms: list = None, i=0, j=0, stats: dict = None, callbacks: list = None):
     if board is None:  # for if it is the initial call
         board = create_board()
     if perms is None:
-        perms = create_permutations(pieces)
-
-    global best_fit
-    global dead_ends
-    global best_times
-    global solutions
-    # Assumes that the top left piece of a piece is nonzero; so it will be filled in upon placement.
-    # This is an invalid assumption eg for the + shape.
+        perms = create_permutations(create_pieces())
+    if stats is None:
+        # environment variables passed through
+        stats = {
+            "total_placements": 0,
+            "successful_placements": 0,
+            "dead_ends": 0,
+            "best_fit": 100,  # best number of pieces fitted in the board
+            "best_times": 0,  # number of times the best fit was achieved
+            "solutions": [],
+            "wait": False,  # if we wait after each placement for the enter key
+            "tic": time.time(),  # start time
+        }
+    if callbacks is None:
+        # Don't do anything by default, if needed another function will add them
+        callbacks = [lambda x,y: None, lambda x: None, lambda x,y,z: None]
 
     # TODO: Make this multithreaded
 
@@ -139,76 +148,33 @@ def compute(board: np.ndarray = None, perms: list = None, i=0, j=0, pieces: list
                     piece_potentials = perms[p_inx]
                     for piece in piece_potentials:
                         poss, b = place(board, piece, i, j)
-                        print_place(poss)
+                        stats["total_placements"] += 1
+                        stats["successful_placements"] += poss
+                        callbacks[0](poss, stats)  # callback for if the piece is placed
                         if poss:
-                            print_board(b, 5)
+                            callbacks[1](b)  # callback for if the piece is possible
                             remaining = perms.copy()
                             remaining.pop(p_inx)
-                            if len(remaining) <= best_fit:  # we're the best so far
-                                if len(remaining) < best_fit:  # its a new best
-                                    best_fit = len(remaining)
-                                    best_times = 0
-                                print(term.move(16, 0))
-                                best_times += 1
-                                print("Fitted", term.bold(str(12 - len(remaining)) + "/12"),
-                                      "pieces into the board", term.bold(str(best_times)), "times")
-                                print_board(b, 17)
-                                print_remaining(remaining)
+                            if len(remaining) <= stats["best_fit"]:  # we're the best so far
+                                if len(remaining) < stats["best_fit"]:  # its a new best
+                                    stats["best_fit"] = len(remaining)
+                                    stats["best_times"] = 0
+                                stats["best_times"] += 1
+
+                                callbacks[2](b, stats, remaining)  # callback for if the piece is the best
 
                             if len(remaining) == 0:
                                 # Done!
-                                solutions.append(b)
+                                stats["solutions"].append(b)
                             else:
-                                if wait:
+                                if stats["wait"]:
                                     a = input("waiting")
-                                compute(board=b, perms=remaining, i=i, j=j)  # next loop will increment i,j
+                                compute(board=b, perms=remaining, i=i, j=j, stats=stats, callbacks=callbacks)
+                                # next loop will increment i,j for us
                 # Was unable to place the piece. So this sim sucks
-                dead_ends += 1
-                return
+                stats["dead_ends"] += 1
+                return stats["solutions"]
             i += 1
         j += 1
         i = 0
-    return
-
-
-if __name__ == "__main__":
-    term = Terminal()
-    print(term.clear())
-
-    # create statistic variables
-    total_placements = 0
-    successful_placements = 0
-    dead_ends = 0
-    best_fit = 100  # best number of pieces fitted in the board
-    best_times = 0  # number of times the best fit was achieved
-    solutions = []
-    tic = time()  # start time
-
-    print(term.bold("Lonpos Game Solver v1.0"), term.green('"It almost works!"'))
-
-    print(term.move(4, 0))
-    print("Current board state:")
-
-    print(term.move(15, 0))
-    print("Best board so far:")
-
-    print(term.move(27, 0))
-    print("Remaining pieces:")
-
-    try:
-        with term.hidden_cursor():
-            # print_board(create_board())
-            if True:
-                b = create_board()
-                p = create_pieces()
-                _, b = place(b, p[1], 0, 0)
-                p.pop(1)
-                pms = create_permutations(p)
-                compute(b, pms, 0, 0)
-            else:
-                compute()
-    except KeyboardInterrupt:
-        pass
-    finally:
-        print(term.move(32, 0))
-        save_solutions(solutions, "solutions/triangle_upper.npy")
+    return stats["solutions"]

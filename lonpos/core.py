@@ -140,7 +140,6 @@ def compute(board: np.ndarray = None, perms: list = None, i=0, j=0, stats: dict 
     # TODO: Make this multithreaded
 
     # i=x, j=y
-
     while j < board.shape[0]:
         while i < board.shape[1]:
             if board[j, i] == 0:  # find the piece that goes here!

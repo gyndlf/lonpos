@@ -20,7 +20,7 @@ def view(path: str):
     try:
         while True:
             print(term.move(3, 0))
-            print(term.clear_eol, "Viewing solution", i)
+            print(term.clear_eol, "Viewing solution", i, "/", len(solutions))
             print_board(term, solutions[i], 4)
             print()
             _ = input("Enter for next solution.")

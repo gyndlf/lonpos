@@ -6,8 +6,9 @@ import time
 tic = time.time()
 
 # Place some pieces
+perms = lonpos.core.create_permutations(lonpos.core.create_pieces())
 for first_place in range(12):
-    for rotates in range(4):
+    for rotates in range(len(perms[first_place])):
         print("New solution")
         b = lonpos.core.create_board()
         p = lonpos.core.create_pieces()

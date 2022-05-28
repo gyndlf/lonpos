@@ -3,7 +3,7 @@ import lonpos
 path = "solutions/triangle_upper.npy"
 
 # View some solutions
-# lonpos.view(path)
+lonpos.view(path)
 
 
 # Place some pieces

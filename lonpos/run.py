@@ -80,10 +80,6 @@ def live(board: np.ndarray = None, pieces: list = None, path: str = None):
 def fast(path: str, board: np.ndarray = None, pieces: list = None):
     """Run the algorithm fast"""
 
-    def printb(_b, stats, _r):
-        if len(stats["solutions"]) > 0:
-            print("Found", len(stats["solutions"]), "solutions with", stats["total_placements"], "total placements")
-
-    callbacks = [lambda x, y: None, lambda x: None, printb]
-    solutions = compute(board, create_permutations(pieces), 0, 0, callbacks=callbacks)
+    solutions = compute(board, create_permutations(pieces), 0, 0)
+    print("Found", len(solutions), "solutions")
     save_solutions(solutions, path)

@@ -123,8 +123,8 @@ def solve(jobid: int, total_jobs: int = 4):
 
     tic = time.time()
     # Place some pieces
-    perms = create_permutations(core.create_pieces())[jobid*to_solve:(jobid+1)*to_solve]
-    for first_place in range(len(perms)):
+    perms = create_permutations(core.create_pieces())
+    for first_place in range(jobid*to_solve, (jobid+1)*to_solve):
         print(f"New piece: {first_place}\n {perms[first_place][0]}")
         orientations = 0
         for starting_piece in perms[first_place]:

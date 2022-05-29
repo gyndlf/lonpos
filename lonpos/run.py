@@ -18,18 +18,19 @@ def view(piece: int = 0, orientation: int = 0):
     path = "./solutions/" + str(piece) + "/" + str(orientation) + "_orientations.npy"
 
     print(term.bold("Lonpos Visualizer v1.0"), term.green('"It works now!"'))
-    print(f"Reading: {path}")
 
     i = 0
     solutions = load_solutions(path)
     try:
         while True:
-            print(term.move(3, 0))
+            print(term.move(1, 0))
+            print(f"Reading: {path}")
+            print()
             print(term.clear_eol, "Viewing solution", i, "/", len(solutions))
             print_board(term, solutions[i], 4)
             print()
             print("Press: (n) for next orientation, (p) for next piece, (q) to quit, or (enter) for another solution")
-            key = input("Enter for next solution.")
+            key = input("")
 
             if key == "n":  # next orientation
                 oriens = os.listdir("solutions/" + str(piece))
@@ -49,6 +50,7 @@ def view(piece: int = 0, orientation: int = 0):
                     piece = 0
                 path = "./solutions/" + str(piece) + "/0_orientations.npy"
                 solutions = load_solutions(path)
+                orientation = 0
                 i = 0
             elif key == "q":  # quit
                 break

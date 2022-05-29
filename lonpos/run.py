@@ -2,15 +2,20 @@
 # Functions to run different versions of the algorithm
 
 from .prints import init_print, print_board, print_place, print_remaining
+import core
 from .core import load_solutions, compute, create_permutations, save_solutions
 
 import numpy as np
+import os
+import time
 
 
-def view(path: str):
-    """View all the solutions saved at the path"""
+def view(piece: int = 0, orientation: int = 0):
+    """View all the solutions saved at the corresponding path"""
     term = init_print()
     print(term.clear())
+
+    path = "./solutions/" + str(piece) + "/" + str(orientation) + "_orientations.npy"
 
     print(term.bold("Lonpos Visualizer v1.0"), term.green('"It works now!"'))
     print(f"Reading: {path}")
@@ -23,11 +28,34 @@ def view(path: str):
             print(term.clear_eol, "Viewing solution", i, "/", len(solutions))
             print_board(term, solutions[i], 4)
             print()
-            _ = input("Enter for next solution.")
+            print("Press: (n) for next orientation, (p) for next piece, (q) to quit, or (enter) for another solution")
+            key = input("Enter for next solution.")
 
-            i += 1
-            if i+1 > solutions.shape[0]:
+            if key == "n":  # next orientation
+                oriens = os.listdir("solutions/" + str(piece))
+                if str(orientation + 1) + "_orientations.npy" in oriens:
+                    orientation += 1
+                else:
+                    orientation = 0
+                path = "./solutions/" + str(piece) + "/" + str(orientation) + "_orientations.npy"
+                solutions = load_solutions(path)
                 i = 0
+
+            elif key == "p":  # next piece
+                pieces = os.listdir("solutions")
+                if str(piece + 1) in pieces:
+                    piece += 1
+                else:
+                    piece = 0
+                path = "./solutions/" + str(piece) + "/0_orientations.npy"
+                solutions = load_solutions(path)
+                i = 0
+            elif key == "q":  # quit
+                break
+            else:  # next solution
+                i += 1
+                if i+1 > solutions.shape[0]:
+                    i = 0
     except KeyboardInterrupt:
         pass
     finally:
@@ -83,3 +111,35 @@ def fast(path: str, board: np.ndarray = None, pieces: list = None):
     solutions = compute(board, create_permutations(pieces), 0, 0)
     print("Found", len(solutions), "solutions")
     save_solutions(solutions, path)
+
+
+def solve(jobid: int, total_jobs: int = 4):
+    """Solve all the combinations. jobid determines which set of pieces to solve with (0-3)"""
+
+    assert 0 <= jobid < total_jobs
+    assert 12 % total_jobs == 0  # can split all the jobs up evenly
+    to_solve = 12 // total_jobs
+    print(f"Running job {jobid} to solve {to_solve} pieces")
+
+    tic = time.time()
+    # Place some pieces
+    perms = create_permutations(core.create_pieces())[jobid*to_solve:(jobid+1)*to_solve]
+    for first_place in range(len(perms)):
+        print(f"New piece: {first_place}\n {perms[first_place][0]}")
+        orientations = 0
+        for starting_piece in perms[first_place]:
+            b = core.create_board()
+            p = core.create_pieces()
+
+            path = "solutions/" + str(first_place) + "/" + str(orientations) + "_orientations.npy"
+
+            poss, b = core.place(b, starting_piece, 0, 0)
+
+            if poss and b[0, 0] != 0:  # filled up the corner
+                print(f"New orientation: {orientations}\n {starting_piece}")
+                p.pop(first_place)
+                fast(path, board=b, pieces=p)
+                orientations += 1
+
+    print(f"Took {(time.time() - tic) / 3600} hours")
+

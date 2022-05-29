@@ -2,7 +2,7 @@
 # Functions to run different versions of the algorithm
 
 from .prints import init_print, print_board, print_place, print_remaining
-import core
+from . import core
 from .core import load_solutions, compute, create_permutations, save_solutions
 
 import numpy as np

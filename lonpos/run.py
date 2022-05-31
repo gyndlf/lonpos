@@ -46,6 +46,8 @@ def view(piece: int = 0, orientation: int = 0):
                 pieces = os.listdir("solutions")
                 if str(piece + 1) in pieces:
                     piece += 1
+                elif str(piece + 2) in pieces:  # so we can skip the + piece
+                    piece += 2
                 else:
                     piece = 0
                 path = "./solutions/" + str(piece) + "/0_orientations.npy"

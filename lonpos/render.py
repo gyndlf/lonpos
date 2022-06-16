@@ -66,13 +66,34 @@ def save(board: np.ndarray, path: str = "board.png"):
     png.fromarray(board, mode='RGB').save(path)
 
 
-def render(board: np.ndarray, scaling:int = 3) -> np.ndarray:
+def render(b: np.ndarray, scaling:int = 3) -> np.ndarray:
     """Render the board"""
-    return to_pixels(zoom(board, scaling))
+    return to_pixels(zoom(b, scaling))
+
+
+def tile(boards: np.ndarray, border = False) -> np.ndarray:
+    """Tile 4 boards together with mirroring"""
+    assert boards.shape[0] == 4
+    i = 0
+    if border:
+        boards = np.pad(boards, 1)
+        i = 1
+    c = np.concatenate((np.flip(boards[i]), np.flip(boards[i+1], axis=0)), axis=1)
+    d = np.concatenate((np.flip(boards[i+2], axis=1), boards[i+3]), axis=1)
+    return np.concatenate((c, d), axis=0)
+
+
+def tile_strip(boards: np.ndarray, border = False) -> np.ndarray:
+    """Repeatedly tile a series of boards"""
+    t = np.zeros((boards.shape[1]*2, boards.shape[2]*boards.shape[0]//2), dtype=np.uint8)
+    print(boards.shape, t.shape)
+    for i in range(boards.shape[0]//4):
+        t[:, i*2*boards.shape[2]:(i+1)*2*boards.shape[2]] = tile(boards[i*4:i*4+4], border)
+    return t
 
 
 if __name__ == "__main__":
     c = np.random.randint(0, 13, (20, 20), dtype=np.uint8)
-    b = np.load("../solutions/triangle_upper.npy")[0]
-    a = np.arange(1, 10).reshape((3, 3))
-    save(render(a))
+    b = np.load("../solutions/triangle_upper.npy")
+
+    save(render(tile_strip(b)))

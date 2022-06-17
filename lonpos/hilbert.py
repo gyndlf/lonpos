@@ -88,7 +88,7 @@ def bilbert(l: list or np.ndarray, x: int) -> np.ndarray:
     if y > x:
         n = 2 ** int(np.log2(x))
         repeats = y // n
-        # print(f"Initial vertical expansion from {y} rows ({x}) : by {repeats} blocks of {n}x{n}")
+        print(f"Initial vertical expansion from {y} rows ({x}) : by {repeats} blocks of {n}x{n}")
         hil = tile_vertically(l, hil, n, repeats)
         last_x = n  # last_x and last_y are the ends of the last block added
         last_y = repeats * n
@@ -97,7 +97,7 @@ def bilbert(l: list or np.ndarray, x: int) -> np.ndarray:
     else:  # Tile horizontally
         n = 2 ** int(np.log2(y))
         repeats = x // n  # how many blocks we can fit
-        # print(f"Initial horizontal expansion from {x} columns ({y}) : by {repeats} blocks of {n}x{n}")
+        print(f"Initial horizontal expansion from {x} columns ({y}) : by {repeats} blocks of {n}x{n}")
         hil = tile_horizontally(l, hil, n, repeats)
         last_y = n
         last_x = repeats * n
@@ -110,14 +110,14 @@ def bilbert(l: list or np.ndarray, x: int) -> np.ndarray:
         if xl > yl:  # there is more work in the x direction
             n = 2 ** int(np.log2(xl))
             repeats = last_y // n  # how many blocks we can fit
-            # print(f"Vertical expansion from {yl} rows : by {repeats} blocks of {n}x{n}")
+            print(f"Vertical expansion from {yl} rows : by {repeats} blocks of {n}x{n}")
             hil = tile_vertically(l[i:], hil, n, repeats, xoff=last_x)
             last_x += n
             xl -= n
         else:
             n = 2 ** int(np.log2(yl))
             repeats = last_x // n  # how many blocks we can fit
-            # print(f"Horizontal expansion from {xl} columns : by {repeats} blocks of {n}x{n}")
+            print(f"Horizontal expansion from {xl} columns : by {repeats} blocks of {n}x{n}")
             hil = tile_horizontally(l[i:], hil, n, repeats, yoff=last_y)
             last_y += n
             yl -= n

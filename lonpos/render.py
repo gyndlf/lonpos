@@ -154,6 +154,8 @@ def load_solutions(root: str = "./solutions/") -> list:
     return solutions
 
 
-if __name__ == "__main__":
-    #save(render(merge(load_solutions("../solutions/"), 100)))
-    save(render(hilbert_merge(load_solutions("../solutions/"), 200)))
+def join(root: str, length: int = 50, hilbert: bool = False):
+    if hilbert:
+        save(render(hilbert_merge(load_solutions(root), length)), "hilbert.png")
+    else:
+        save(render(merge(load_solutions(root), length)), "merged.png")

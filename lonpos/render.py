@@ -4,6 +4,7 @@
 import numpy as np
 import png
 import os
+import hilbert
 
 
 # Pixels are not a new dimension, but just listed next to each other in the ndarray
@@ -76,37 +77,32 @@ def render(b: np.ndarray, scaling:int = 3) -> np.ndarray:
     return to_pixels(zoom(b, scaling))
 
 
-def tile(boards: list, border = False) -> np.ndarray:
+def tile(boards: list) -> np.ndarray:
     """Tile 4 boards together with mirroring"""
     assert len(boards) == 4
-    if border:
-        c = np.concatenate((np.zeros((boards[0].shape[0], 1)), np.flip(boards[0]), np.zeros((boards[0].shape[0], 1)),
-                            np.flip(boards[1], axis=0), np.zeros((boards[0].shape[0], 1))), axis=1)
-        d = np.concatenate((np.zeros((boards[0].shape[0], 1)), np.flip(boards[2], axis=1),
-                            np.zeros((boards[0].shape[0], 1)), boards[3], np.zeros((boards[0].shape[0], 1))), axis=1)
-        return np.concatenate((np.zeros((1, boards[0].shape[0]*2+3,)), c, np.zeros((1, boards[0].shape[0]*2+3,)),
-                               d, np.zeros((1, boards[0].shape[0]*2+3))), axis=0)
+    c = np.concatenate((np.zeros((boards[0].shape[0], 1)), np.flip(boards[0]), np.zeros((boards[0].shape[0], 1)),
+                            np.flip(boards[1], axis=0)), axis=1)
+    d = np.concatenate((np.zeros((boards[0].shape[0], 1)), np.flip(boards[2], axis=1),
+                        np.zeros((boards[0].shape[0], 1)), boards[3]), axis=1)
+    return np.concatenate((np.zeros((1, boards[0].shape[0]*2+2,)), c, np.zeros((1, boards[0].shape[0]*2+2,)), d), axis=0)
 
 
-def stack(boards: np.ndarray, border=False) -> tuple[np.ndarray, np.ndarray]:
+def stack(boards: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """Repeatedly tile a series of boards, returning the residual"""
     if boards.size == 0:
         print("Empty solution set? Skipping")
         return np.array([]), np.array([])
-    t = np.zeros((boards.shape[0]//4, boards.shape[1]*2+(3*border), boards.shape[2]*2+(3*border)), dtype=np.uint8)
+    t = np.zeros((boards.shape[0]//4, boards.shape[1]*2+2, boards.shape[2]*2+2), dtype=np.uint8)
     for i in range(boards.shape[0]//4):
-        t[i, :, :] = tile(boards[i*4:i*4+4], border)
+        t[i, :, :] = tile(boards[i*4:i*4+4])
     print(f"Tiled {boards.shape[0]} boards ({boards.shape[0]//4}) into {t.shape}")
     return t, boards[boards.shape[0]//4*4:]
 
 
-def merge(solutions: list, length: int = 50, border=False) -> np.ndarray:
-    """Merge a series of solutions into strips of a set length"""
-    petalx = solutions[0][0].shape[1]*2
-    petaly = solutions[0][0].shape[0]*2
-    if border:
-        petalx += 3
-        petaly += 3
+def merge(solutions: list, length: int = 50) -> np.ndarray:
+    """Merge a series of solutions into strips of a set length. Main method"""
+    petalx = solutions[0][0].shape[1]*2+2
+    petaly = solutions[0][0].shape[0]*2+2
 
     merged = np.zeros((petaly*21200//(4*length), length*petalx), dtype=np.uint8)
     print(f"Merged shape of {merged.shape}")
@@ -114,7 +110,7 @@ def merge(solutions: list, length: int = 50, border=False) -> np.ndarray:
     j = 0
     leftovers = []
     for solution_set in range(len(solutions)):
-        sols, res = stack(solutions[solution_set], border=border)
+        sols, res = stack(solutions[solution_set])
         leftovers.append(res)
         for s in range(sols.shape[0]):
             merged[j*petaly:(j+1)*petaly, i*petalx:(i+1)*petalx] = sols[s]
@@ -126,6 +122,22 @@ def merge(solutions: list, length: int = 50, border=False) -> np.ndarray:
     return merged
 
 
+def hilbert_merge(solutions: list, length: int = 50) -> np.ndarray:
+    """Merge all the solutions together along a Hilbert curve approximation"""
+    print("Merging along a hilbert curve")
+    all = np.concatenate(solutions)
+    map = hilbert.bilbert(np.arange(0, all.shape[0]), length)
+
+    x = solutions[0][0].shape[0]
+    y = solutions[0][0].shape[1]
+
+    combined = np.zeros((y*map.shape[0], x*length), dtype=np.uint8)
+    for i in range(map.shape[0]):
+        for j in range(map.shape[1]):
+            combined[i*y:(i+1)*y, j*x:(j+1)*x] = all[map[i, j], :, :]
+    return combined
+
+
 def load_solutions(root: str = "./solutions/") -> list:
     """Load all the solutions from the given directory"""
     solutions = []
@@ -133,10 +145,13 @@ def load_solutions(root: str = "./solutions/") -> list:
         if os.path.isdir(os.path.join(root, d)):
             for f in os.listdir(os.path.join(root, d)):
                 if f.endswith(".npy"):
-                    solutions.append(np.load(os.path.join(root, d, f)))
+                    m = np.load(os.path.join(root, d, f))
+                    if m.size != 0:
+                        solutions.append(m)
     print(f"Loaded {len(solutions)} sets of solutions")
     return solutions
 
 
 if __name__ == "__main__":
-    save(render(merge(load_solutions("../solutions/"), 100, border=True)))
+    #save(render(merge(load_solutions("../solutions/"), 100)))
+    save(render(hilbert_merge(load_solutions("../solutions/"), 200)))

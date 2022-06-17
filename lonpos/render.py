@@ -13,8 +13,10 @@ import os
 def to_rgb(val: int) -> list:
     """Convert an int to an appropriate RGB value"""
     # Referenced https://sashamaps.net/docs/resources/20-colors/ for the colours
+    blank = [255, 255, 255]
+
     colours = [  # these should be fixed based on the piece inputs
-        [0, 0, 0],  # 0, black (empty space)
+        blank,  # 0, black (empty space)
         [230, 25, 75],  # 1, red
         [70, 240, 240],  # 2, light blue (cyan)
         [245, 130, 48],  # 3, orange
@@ -27,7 +29,7 @@ def to_rgb(val: int) -> list:
         [60, 180, 75],  # 10, green
         [128, 128, 128],  # 11, gray
         [255, 215, 180],  # 12, salmon (salmon)
-        [0, 0, 0]  # was [255, 255, 255] but it doesn't look as good # 13, white (invalid space)
+        blank  # 13, white (invalid space)
     ]
     if 0 > val or val > 13:
         print(f"Invalid colour {val}")
@@ -77,13 +79,13 @@ def render(b: np.ndarray, scaling:int = 3) -> np.ndarray:
 def tile(boards: list, border = False) -> np.ndarray:
     """Tile 4 boards together with mirroring"""
     assert len(boards) == 4
-    i = 0
     if border:
-        boards = np.pad(boards, 1)
-        i = 1
-    c = np.concatenate((np.flip(boards[i]), np.flip(boards[i+1], axis=0)), axis=1)
-    d = np.concatenate((np.flip(boards[i+2], axis=1), boards[i+3]), axis=1)
-    return np.concatenate((c, d), axis=0)
+        c = np.concatenate((np.zeros((boards[0].shape[0], 1)), np.flip(boards[0]), np.zeros((boards[0].shape[0], 1)),
+                            np.flip(boards[1], axis=0), np.zeros((boards[0].shape[0], 1))), axis=1)
+        d = np.concatenate((np.zeros((boards[0].shape[0], 1)), np.flip(boards[2], axis=1),
+                            np.zeros((boards[0].shape[0], 1)), boards[3], np.zeros((boards[0].shape[0], 1))), axis=1)
+        return np.concatenate((np.zeros((1, boards[0].shape[0]*2+3,)), c, np.zeros((1, boards[0].shape[0]*2+3,)),
+                               d, np.zeros((1, boards[0].shape[0]*2+3))), axis=0)
 
 
 def stack(boards: np.ndarray, border=False) -> tuple[np.ndarray, np.ndarray]:
@@ -91,7 +93,7 @@ def stack(boards: np.ndarray, border=False) -> tuple[np.ndarray, np.ndarray]:
     if boards.size == 0:
         print("Empty solution set? Skipping")
         return np.array([]), np.array([])
-    t = np.zeros((boards.shape[0]//4, boards.shape[1]*2+(4*border), boards.shape[2]*2+(4*border)), dtype=np.uint8)
+    t = np.zeros((boards.shape[0]//4, boards.shape[1]*2+(3*border), boards.shape[2]*2+(3*border)), dtype=np.uint8)
     for i in range(boards.shape[0]//4):
         t[i, :, :] = tile(boards[i*4:i*4+4], border)
     print(f"Tiled {boards.shape[0]} boards ({boards.shape[0]//4}) into {t.shape}")
@@ -103,15 +105,17 @@ def merge(solutions: list, length: int = 50, border=False) -> np.ndarray:
     petalx = solutions[0][0].shape[1]*2
     petaly = solutions[0][0].shape[0]*2
     if border:
-        petalx += 4
-        petaly += 4
+        petalx += 3
+        petaly += 3
 
     merged = np.zeros((petaly*21200//(4*length), length*petalx), dtype=np.uint8)
     print(f"Merged shape of {merged.shape}")
     i = 0
     j = 0
+    leftovers = []
     for solution_set in range(len(solutions)):
         sols, res = stack(solutions[solution_set], border=border)
+        leftovers.append(res)
         for s in range(sols.shape[0]):
             merged[j*petaly:(j+1)*petaly, i*petalx:(i+1)*petalx] = sols[s]
             i += 1
@@ -135,4 +139,4 @@ def load_solutions(root: str = "./solutions/") -> list:
 
 
 if __name__ == "__main__":
-    save(render(merge(load_solutions("../solutions/"), 50, border=True)))
+    save(render(merge(load_solutions("../solutions/"), 100, border=True)))

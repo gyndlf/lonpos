@@ -128,13 +128,15 @@ def hilbert_merge(solutions: list, length: int = 50) -> np.ndarray:
     all = np.concatenate(solutions)
     map = hilbert.bilbert(np.arange(0, all.shape[0]), length)
 
-    x = solutions[0][0].shape[0]
-    y = solutions[0][0].shape[1]
+    x = solutions[0][0].shape[0]+1
+    y = solutions[0][0].shape[1]+1
 
     combined = np.zeros((y*map.shape[0], x*length), dtype=np.uint8)
     for i in range(map.shape[0]):
         for j in range(map.shape[1]):
-            combined[i*y:(i+1)*y, j*x:(j+1)*x] = all[map[i, j], :, :]
+            combined[i*y:(i+1)*y, j*x:(j+1)*x] = np.concatenate((
+                np.concatenate((all[map[i, j], :, :], np.zeros((y-1, 1))), axis=1),
+                np.zeros((1 , x))), axis=0)
     return combined
 
 

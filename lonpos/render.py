@@ -1,10 +1,11 @@
 # d7374
 # Render all the solutions into a nice picture
 
+from . import hilbert
+
 import numpy as np
 import png
 import os
-import hilbert
 
 
 # Pixels are not a new dimension, but just listed next to each other in the ndarray

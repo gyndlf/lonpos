@@ -71,6 +71,7 @@ def live(board: np.ndarray = None, pieces: list = None, path: str = None):
     """Solve the board live"""
     term = init_print()
     print(term.clear())
+    board_height = board.shape[0]
 
     print(term.bold("Lonpos Solver v1.0"), term.green('"It works now!"'))
 

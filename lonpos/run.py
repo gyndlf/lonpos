@@ -158,6 +158,6 @@ def solve(jobid: int, total_jobs: int = 4, pieces: list = None, board: np.ndarra
 def tessellate(root_dir: str, length: int = 50, hilbert: bool = False):
     """Combine many solutions into a tessellation grid of them all"""
     if hilbert:
-        render.save(render.render(render.hilbert_merge(render.load_solutions(root_dir), length)), "hilbert.png")
+        render.save(render.render(render.hilbert_merge(render.load_solutions(root_dir), length)), "pictures/hilbert.png")
     else:
-        render.save(render.render(render.merge(render.load_solutions(root_dir), length)), "merged.png")
+        render.save(render.render(render.merge(render.load_solutions(root_dir), length)), "pictures/merged.png")

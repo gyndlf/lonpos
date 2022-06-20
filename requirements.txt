@@ -1,0 +1,4 @@
+blessings==1.7
+numpy==1.22.4
+pypng==0.0.21
+six==1.16.0

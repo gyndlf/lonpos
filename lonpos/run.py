@@ -4,6 +4,7 @@
 from .prints import init_print, print_board, print_place, print_remaining
 from . import core
 from .core import load_solutions, compute, create_permutations, save_solutions
+from . import render
 
 import numpy as np
 import os
@@ -110,15 +111,14 @@ def live(board: np.ndarray = None, pieces: list = None, path: str = None):
 
 
 def fast(path: str, board: np.ndarray = None, pieces: list = None):
-    """Run the algorithm fast"""
-
+    """Run the algorithm fast on the given board and pieces"""
     solutions = compute(board, create_permutations(pieces), 0, 0)
     print("Found", len(solutions), "solutions")
     save_solutions(solutions, path)
 
 
-def solve(jobid: int, total_jobs: int = 4):
-    """Solve all the combinations. jobid determines which set of pieces to solve with (0-3)"""
+def solve(jobid: int, total_jobs: int = 4, pieces: list = None, board: np.ndarray = None):
+    """Solve all the combinations fast by allocating through the jobid (0-3) usually"""
 
     assert 0 <= jobid < total_jobs
     assert 12 % total_jobs == 0  # can split all the jobs up evenly
@@ -126,14 +126,21 @@ def solve(jobid: int, total_jobs: int = 4):
     print(f"Running job {jobid} to solve {to_solve} pieces")
 
     tic = time.time()
-    # Place some pieces
-    perms = create_permutations(core.create_pieces())
+    if pieces is None:  # Place some pieces
+        perms = create_permutations(core.create_pieces())
+        pieces = core.create_pieces()
+    else:
+        perms = create_permutations(pieces)
+
+    if board is None:  # Create a board
+        board = core.create_board()
+
     for first_place in range(jobid*to_solve, (jobid+1)*to_solve):
         print(f"New piece: {first_place}\n {perms[first_place][0]}")
         orientations = 0
         for starting_piece in perms[first_place]:
-            b = core.create_board()
-            p = core.create_pieces()
+            b = board.copy()
+            p = pieces.copy()
 
             path = "solutions/" + str(first_place) + "/" + str(orientations) + "_orientations.npy"
 
@@ -147,3 +154,10 @@ def solve(jobid: int, total_jobs: int = 4):
 
     print(f"Took {(time.time() - tic) / 3600} hours")
 
+
+def tessellate(root_dir: str, length: int = 50, hilbert: bool = False):
+    """Combine many solutions into a tessellation grid of them all"""
+    if hilbert:
+        render.save(render.render(render.hilbert_merge(render.load_solutions(root_dir), length)), "hilbert.png")
+    else:
+        render.save(render.render(render.merge(render.load_solutions(root_dir), length)), "merged.png")

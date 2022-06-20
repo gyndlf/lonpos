@@ -2,7 +2,7 @@ import lonpos
 
 #lonpos.view(0, 0)
 
-#lonpos.solve(int(sys.argv[1]), int(sys.argv[2]))
+lonpos.solve(0, 4)
 
-lonpos.join("solutions", 250, True)
+#lonpos.tessellate("solutions", 328, True)
 

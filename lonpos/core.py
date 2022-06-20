@@ -138,6 +138,7 @@ def compute(board: np.ndarray = None, perms: list = None, i=0, j=0, stats: dict 
         callbacks = [lambda x,y: None, lambda x: None, lambda x,y,z: None]
 
     # TODO: Make this multithreaded
+    #  Not needed, simply just run many process in parallel, each starting each with a different piece
 
     # i=x, j=y
     while j < board.shape[0]:

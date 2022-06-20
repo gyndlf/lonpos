@@ -4,6 +4,6 @@
 
 from . import core
 from . import prints
-from .render import join
-from .run import view, live, fast, solve
-__all__ = [view, live, fast, solve, join]
+from . import render
+from .run import view, live, fast, solve, tessellate
+__all__ = [view, live, fast, solve, tessellate]

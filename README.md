@@ -13,7 +13,7 @@ Using a [pesudo-hilbert curve](https://gist.github.com/vobenhen/c4455327589094c2
 out on a grid where the most similar solutions are nearest to each other. This layout can be exactly a hilbert curve if a square is specified (sides length being a power of 2),
 however I wanted it to be more generic such as long rectangle of solutions. This means I could hypothetically print out all 21,200 solutions on a 3m roll.... 
 
-See `pictures/` for all the solutions in various layouts
+See `pictures/` for all the solutions in various layouts. `solutions/` contains all the solutions in compressed numpy arrays, use `view()` to view them.
 
 ![all solutions printed](pictures/printed.jpg)
 

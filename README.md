@@ -4,6 +4,8 @@ An algorithm that solves a little puzzle game where you must fit all the little 
 leaving any gaps and using all the pieces. I found it really hard to do, so I wanted to create a bot to do it for me,
 as well as finding all possible solutions.
 
+![my favourite solution](pictures/single.png)
+
 This algorithm finds 21,200 solutions to the puzzle which is exactly the same as what the outside of the box claims.
 Running it on four separate threads, it was able to find them all in under an hour
 (Pretty good considering there are millions of possibilities)
@@ -15,11 +17,11 @@ however I wanted it to be more generic such as long rectangle of solutions. This
 
 See `pictures/` for all the solutions in various layouts. `solutions/` contains all the solutions in compressed numpy arrays, use `view()` to view them.
 
-![all solutions printed](pictures/printed.jpg)
-
 ## Usage
 99% of the methods you want to call are located in `run.py` the other files are just helper methods and stuff. A 4 line example is in `go.py`
 
 `numpy` is required for most methods, `blessings` is just for fancy CMD line output and `pypng` is for saving the image.
 
 If you find it useful let me know, as I'd love to hear about it
+
+![all solutions printed](pictures/printed.jpg)

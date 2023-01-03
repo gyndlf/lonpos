@@ -171,7 +171,7 @@ def compute(board: np.ndarray = None, perms: list = None, i=0, j=0, stats: dict 
                                     a = input("waiting")
                                 compute(board=b, perms=remaining, i=i, j=j, stats=stats, callbacks=callbacks)
                                 # next loop will increment i,j for us
-                # Was unable to place the piece. So this sim sucks
+                # Unable to place any pieces. So this sim sucks
                 stats["dead_ends"] += 1
                 return stats["solutions"]
             i += 1

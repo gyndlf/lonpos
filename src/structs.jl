@@ -1,5 +1,4 @@
 # d7844
-# Apart of Lonpos.core
 
 # update to static in the future
 mutable struct Piece

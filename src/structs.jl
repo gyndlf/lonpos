@@ -1,19 +1,19 @@
 # d7844
 
 # update to static in the future
-mutable struct Piece
-    shape::Matrix{Int64}
+mutable struct Piece{T<:Integer}
+    shape::Matrix{T}
 end
 
-struct Board
-    shape::Matrix{Int64}
+struct Board{T<:Integer}
+    shape::Matrix{T}
 end
 
 # Constructors
-newpiece(shp::Matrix{Int64}) = Piece(shp)
-newboard(shp::Matrix{Int64}) = Board(shp)
+newpiece(shp::Matrix{T}) where {T<:Integer} = Piece(shp)
+newboard(shp::Matrix{T}) where {T<:Integer} = Board(shp)
 
-newboard(b::Board) = Board(b.shape)  # is a copy
+newboard(b::Board) = Board(copy(b.shape))  # is a copy
 newpiece(p::Piece) = Piece(p.shape)
 
 # useful to overload Base.size

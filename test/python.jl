@@ -9,8 +9,8 @@ const create_board = Lonpos.create_board
 const create_pieces = Lonpos.create_pieces
 
 # Simple place
-b = newboard(zeros(Int64, (5,5)))
-p = newpiece(ones(Int64, (1,1)))
+b = newboard(zeros(Integer, (5,5)))
+p = newpiece(ones(Integer, (1,1)))
 poss, nb = place(b, p, 1, 1)
 @debug poss, nb
 @test poss

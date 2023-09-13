@@ -5,7 +5,7 @@ module Lonpos
 # Includes
 include("structs.jl")
 include("core.jl")
-#include("run.jl")
+include("run.jl")
 
-export live, fast
+export fast
 end

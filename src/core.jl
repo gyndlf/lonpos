@@ -16,11 +16,11 @@ function create_pieces()::Vector{Piece}
     red = [1 1 1; 1 1 0]
     cyan = [1 1 1; 1 0 0; 1 0 0] .* 2
     orange = [1 1 1; 1 0 0] .* 3
-    lime = ones(Int64, (2, 2)) .* 4
+    lime = ones(Integer, (2, 2)) .* 4
     white = [1 1; 1 0] .* 5
     yellow = [1 1 1; 1 0 1] .* 6
     blue = [1 1 1 1; 1 0 0 0] .* 7
-    purple = ones(Int64, (4, 1)) .* 8
+    purple = ones(Integer, (4, 1)) .* 8
     pink = [1 1 0; 0 1 1; 0 0 1] .* 9
     green = [1 1 1 0; 0 0 1 1] .* 10
     gray = [0 1 0; 1 1 1; 0 1 0] .* 11
@@ -88,14 +88,14 @@ function create_permutations(pieces::Vector{Piece}=nothing)::Vector{Vector{Piece
         perms = Piece[]
         for f in 1:2
             for r in 1:4
-                if not p in perms
-                    append!(perms, p)
+                if !(p in perms)
+                    push!(perms, p)
                 end
                 p = rotate(p)
             end
             p = flip(p)
         end
-        append!(all_perms, perms)
+        push!(all_perms, perms)
     end
     return all_perms
 end
@@ -103,7 +103,7 @@ end
 
 function create_board()::Board
     """Create a board of correct dimensions"""
-    b = zeros(Int64, (9, 9))
+    b = zeros(Integer, (9, 9))
     invalid = 13
     b[4, 3] = invalid  # missing middle piece
     b[7:end, 1] .= invalid  # bottom right corner
@@ -120,7 +120,7 @@ function create_board()::Board
 end
 
 
-function place(board::Board, piece::Piece, x::Int64, y::Int64):: Tuple{Bool, Board}
+function place(board::Board, piece::Piece, x::Integer, y::Integer):: Tuple{Bool, Board}
     """Place the piece in the board if possible"""
     # Offset the piece if it is L or +
     offset = findall(x->x!=0, piece.shape[1,:])[1]-1 # zero indexed (at least one solution otherwise the piece is badly shaped)
@@ -144,27 +144,26 @@ function place(board::Board, piece::Piece, x::Int64, y::Int64):: Tuple{Bool, Boa
     return false, board
 end
 
+function compute(; i::Integer=1, j::Integer=1, callbacks=nothing)
+    # The initial call
+    b = create_board()
+    perms = create_permutations(create_pieces())
+    # environment variables passed through
+    stats = Dict(
+        "total_placements" => 0,
+        "successful_placements" => 0,
+        "dead_ends" => 0,
+        "best_fit" => 100,  # best number of pieces fitted in the board
+        "best_times" => 0,  # number of times the best fit was achieved
+        "solutions" => [],
+        "wait" => false,  # if we wait after each placement for the enter key
+        "tic" => now(),  # start time
+    )
+    return compute(i, j, b, perms, stats, callbacks=callbacks)
+end
 
-function compute(board::Board=nothing, perms::Vector{Vector{Piece}}=nothing, i=0, j=0, stats::Dict=nothing, callbacks=nothing)
-    if board === nothing  # for if it is the initial call
-        board = create_board()
-    end
-    if perms === nothing
-        perms = create_permutations(create_pieces())
-    end
-    if stats === nothing
-        # environment variables passed through
-        stats = Dict(
-            "total_placements" => 0,
-            "successful_placements" => 0,
-            "dead_ends" => 0,
-            "best_fit" => 100,  # best number of pieces fitted in the board
-            "best_times" => 0,  # number of times the best fit was achieved
-            "solutions" => [],
-            "wait" => false,  # if we wait after each placement for the enter key
-            "tic" => now(),  # start time
-        )
-    end
+
+function compute(i::Integer, j::Integer, board::Board, perms::Vector{Vector{Piece}}, stats::Dict; callbacks=nothing)    
     if callbacks === nothing
         # Don't do anything by default, if needed another function will add them
         callbacks = [(x,y)->nothing, (x)->nothing, (x,y,z)->nothing]
@@ -173,9 +172,10 @@ function compute(board::Board=nothing, perms::Vector{Vector{Piece}}=nothing, i=0
     # TODO: Make this multithreaded
 
     # i=x, j=y
-    while j < size(board)[1]
-        while i < size(board)[2]
-            if board[j, i] == 0  # find the piece that goes here!
+    while j <= size(board)[1]
+        while i <= size(board)[2]
+            if board.shape[j, i] == 0  # find the piece that goes here!
+                #@debug "Indexes" i=i j=j board=board
                 for p_inx in eachindex(perms)
                     piece_potentials = perms[p_inx]
                     for piece in piece_potentials
@@ -200,22 +200,25 @@ function compute(board::Board=nothing, perms::Vector{Vector{Piece}}=nothing, i=0
                             end
 
                             if length(remaining) == 0  # We're done!
-                                append!(stats["solutions"], b)
+                                @debug "Found solution" stats["solutions"]
+                                push!(stats["solutions"], b)
                             else
-                                compute(board=b, perms=remaining, i=i, j=j, stats=stats, callbacks=callbacks)
+                                #@debug "Recursing" stats["total_placements"] stats["solutions"]
+                                compute(i, j, b, remaining, stats, callbacks=callbacks)
                                 # next loop will increment i,j for us
                             end
                         end
                     end
+                end
                 # Unable to place any pieces. So this sim sucks
+                #@debug "Reached a dead end"
                 stats["dead_ends"] += 1
                 return stats["solutions"]
-                end
-            i += 1
             end
-        j += 1
-        i = 0
+            i += 1
         end
+        j += 1
+        i = 1
     end
     return stats["solutions"]
 end

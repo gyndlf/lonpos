@@ -10,6 +10,7 @@
 
 using Dates  # for now()
 
+module core
 
 function create_pieces()::Vector{Piece}
     """Create all of the valid pieces"""
@@ -219,3 +220,6 @@ function compute(board::Board=nothing, perms::Vector{Vector{Piece}}=nothing, i=0
     end
     return stats["solutions"]
 end
+
+
+end # module

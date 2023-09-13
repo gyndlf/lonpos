@@ -25,4 +25,8 @@ Base.size(p::Piece) = size(p.shape)
 Base.size(b::Board) = size(b.board)
 
 
+# Includes
+include("core.jl")
+
+export core
 end

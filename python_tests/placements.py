@@ -3,7 +3,7 @@
 
 import unittest
 import numpy as np
-from lonpos import core
+from python_lonpos import core
 
 
 class Tests(unittest.TestCase):

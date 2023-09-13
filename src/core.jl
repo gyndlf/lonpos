@@ -12,23 +12,25 @@ using Dates  # for now()
 
 module core
 
+include("structs.jl")
+
 function create_pieces()::Vector{Piece}
     """Create all of the valid pieces"""
-    red = np.array([[1, 1, 1], [1, 1, 0]])
-    cyan = np.array([[1, 1, 1], [1, 0, 0], [1, 0, 0]]) * 2
-    orange = np.array([[1, 1, 1], [1, 0, 0]]) * 3
-    lime = np.ones((2, 2), dtype=int) * 4
-    white = np.array([[1, 1], [1, 0]]) * 5
-    yellow = np.array([[1, 1, 1], [1, 0, 1]]) * 6
-    blue = np.array([[1, 1, 1, 1], [1, 0, 0, 0]]) * 7
-    purple = np.ones((4, 1), dtype=int) * 8
-    pink = np.array([[1, 1, 0], [0, 1, 1], [0, 0, 1]]) * 9
-    green = np.array([[1, 1, 1, 0], [0, 0, 1, 1]]) * 10
-    gray = np.array([[0, 1, 0], [1, 1, 1], [0, 1, 0]]) * 11
-    salmon = np.array([[1, 1, 1, 1], [0, 1, 0, 0]]) * 12
-    tee = np.array([[1,1,1],[0,1,0],[0,1,0]]) * 14
-    zed = np.array([[0,0,1],[1,1,1],[1,0,0]]) * 15
-    return [red, cyan, orange, lime, white, yellow, blue, purple, pink, green, gray, salmon]
+    red = [1 1 1; 1 1 0]
+    cyan = [1 1 1; 1 0 0; 1 0 0] .* 2
+    orange = [1 1 1; 1 0 0] .* 3
+    lime = ones(Int64, (2, 2)) .* 4
+    white = [1 1; 1 0] .* 5
+    yellow = [1 1 1; 1 0 1] .* 6
+    blue = [1 1 1 1; 1 0 0 0] .* 7
+    purple = ones(Int64, (4, 1)) .* 8
+    pink = [1 1 0; 0 1 1; 0 0 1] .* 9
+    green = [1 1 1 0; 0 0 1 1] .* 10
+    gray = [0 1 0; 1 1 1; 0 1 0] .* 11
+    salmon = [1 1 1 1; 0 1 0 0] .* 12
+    tee = [1 1 1; 0 1 0; 0 1 0] .* 14
+    zed = [0 0 1; 1 1 1; 1 0 0] .* 15
+    return map(newpiece, [red, cyan, orange, lime, white, yellow, blue, purple, pink, green, gray, salmon])
 end
 
 
@@ -107,43 +109,43 @@ function create_board()::Board
     b = zeros(Int64, (9, 9))
     invalid = 13
     b[4, 3] = invalid  # missing middle piece
-    b[7:end, 1] = invalid  # bottom right corner
-    b[8:end, 2] = invalid
+    b[7:end, 1] .= invalid  # bottom right corner
+    b[8:end, 2] .= invalid
     b[9, 3] = invalid
-    b[1, 7:end] = invalid  # bottom left corner
-    b[2, 8:end] = invalid
+    b[1, 7:end] .= invalid  # bottom left corner
+    b[2, 8:end] .= invalid
     b[3, 9] = invalid
-    b[6, 8:end] = invalid  # bottom
-    b[7, 7:end] = invalid
-    b[8, 6:end] = invalid
-    b[9, 6:end] = invalid
+    b[6, 8:end] .= invalid  # bottom
+    b[7, 7:end] .= invalid
+    b[8, 6:end] .= invalid
+    b[9, 6:end] .= invalid
     return newboard(b)
 end
 
 
-function place(board::Board, piece::Piece, x::Int64, y::Int64):: Union{Bool, Board}
+function place(board::Board, piece::Piece, x::Int64, y::Int64):: Tuple{Bool, Board}
     """Place the piece in the board if possible"""
     # Offset the piece if it is L or +
-    offset = findall(x->x!=0, piece.shape[1,:])[1]
+    offset = findall(x->x!=0, piece.shape[1,:])[1]-1 # zero indexed (at least one solution otherwise the piece is badly shaped)
+    x -= offset
 
     # check dimensions
-    if size(piece)[2] + x - offset > size(board)[2] ||
+    if size(piece)[2] + x > size(board)[2] ||
         size(piece)[1] + y > size(board)[1] ||
-        x - offset < 0 ||
-        y < 0
-        return False, board  # Piece exceeds board space
+        x < 1 ||
+        y < 1
+        return false, board  # Piece exceeds board space
     end
 
-    view = board.shape[y:y + size(piece)[1], x - offset:x + size(piece)[2] - offset]
+    view = board.shape[y:y+size(piece)[1]-1, x:x+size(piece)[2]-1]
 
-    if sum(view[piece != 0]) == 0  # only replacing zeros with the piece
+    if sum(view[piece.shape .!== 0]) == 0  # only replacing zeros with the piece
         temp = newboard(board)
-        temp.shape[y:y + size(piece)[1], x - offset:x + size(piece)[2] - offset] += piece.shape
-        return True, temp
+        temp.shape[y:y + size(piece)[1]-1, x:x + size(piece)[2]-1] += piece.shape
+        return true, temp
     end
-    return False, board
+    return false, board
 end
-
 
 
 function compute(board::Board=nothing, perms::Vector{Vector{Piece}}=nothing, i=0, j=0, stats::Dict=nothing, callbacks=nothing)
@@ -168,7 +170,7 @@ function compute(board::Board=nothing, perms::Vector{Vector{Piece}}=nothing, i=0
     end
     if callbacks === nothing
         # Don't do anything by default, if needed another function will add them
-        callbacks = [f(x,y)=nothing, g(x)=nothing, h(x,y,z)=nothing]
+        callbacks = [(x,y)->nothing, (x)->nothing, (x,y,z)->nothing]
     end
 
     # TODO: Make this multithreaded

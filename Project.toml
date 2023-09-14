@@ -1,10 +1,11 @@
 name = "Lonpos"
 uuid = "35f7b6a9-fd20-4d84-840c-133f75cc8faa"
-authors = ["James Zingel <james@zingel.nz> and contributors"]
-version = "1.0.0-DEV"
+authors = ["James Zingel <james@zingel.nz>"]
+version = "0.1.0"
 
 [deps]
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+Debugger = "31a5f54b-26ea-5ae9-a837-f05ce5417438"
 Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
 Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
 

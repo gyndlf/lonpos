@@ -10,3 +10,4 @@ function fast(path::String)
     #save_solutions(solutions, path)
     @debug "Solutions" sol=solutions
 end
+

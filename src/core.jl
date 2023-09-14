@@ -127,8 +127,8 @@ function place(board::Board, piece::Piece, x::Integer, y::Integer):: Tuple{Bool,
     x -= offset
 
     # check dimensions
-    if size(piece)[2] + x > size(board)[2] ||
-        size(piece)[1] + y > size(board)[1] ||
+    if size(piece)[2] + x - 1 > size(board)[2] ||
+        size(piece)[1] + y - 1 > size(board)[1] ||
         x < 1 ||
         y < 1
         return false, board  # Piece exceeds board space
@@ -172,10 +172,9 @@ function compute(i::Integer, j::Integer, board::Board, perms::Vector{Vector{Piec
     # TODO: Make this multithreaded
 
     # i=x, j=y
-    while j <= size(board)[1]
-        while i <= size(board)[2]
+    while j <= size(board, 1)
+        while i <= size(board, 2)
             if board.shape[j, i] == 0  # find the piece that goes here!
-                #@debug "Indexes" i=i j=j board=board
                 for p_inx in eachindex(perms)
                     piece_potentials = perms[p_inx]
                     for piece in piece_potentials
@@ -200,10 +199,9 @@ function compute(i::Integer, j::Integer, board::Board, perms::Vector{Vector{Piec
                             end
 
                             if length(remaining) == 0  # We're done!
-                                @debug "Found solution" stats["solutions"]
+                                @debug "Found solution" num=stats["best_times"] b
                                 push!(stats["solutions"], b)
                             else
-                                #@debug "Recursing" stats["total_placements"] stats["solutions"]
                                 compute(i, j, b, remaining, stats, callbacks=callbacks)
                                 # next loop will increment i,j for us
                             end

@@ -2,12 +2,6 @@
 # d7844 (julia)
 # Some tests from python imported into julia
 
-const newboard = Lonpos.newboard
-const newpiece = Lonpos.newpiece
-const place = Lonpos.place
-const create_board = Lonpos.create_board
-const create_pieces = Lonpos.create_pieces
-
 # Simple place
 b = newboard(zeros(Integer, (5,5)))
 p = newpiece(ones(Integer, (1,1)))

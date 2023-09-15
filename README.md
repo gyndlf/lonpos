@@ -1,5 +1,7 @@
 # Lonpos Solver
 
+> This branch `python` is the pure-python implementation of the Lonpos solver. It is currently not being developed further.
+
 An algorithm that solves a little puzzle game where you must fit all the little pieces into a grid without
 leaving any gaps and using all the pieces. I found it really hard to do, so I wanted to create a bot to do it for me,
 as well as finding all possible solutions.

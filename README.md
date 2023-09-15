@@ -22,11 +22,11 @@ See `pictures/` for all the solutions in various layouts. `solutions/` contains 
 ## Usage
 The core algorithm of this program is written in Julia, however it can still be called from python. The disadvantage is that the setup to do this is more convoluted. 
 
-`> julia` should be available system-wide and when running from python it will connect to the julia environment specified by `Project.toml`. Make sure this will run before trying to call the python code.
+`julia` should be available system-wide and when running from python it will connect to the julia environment specified by `Project.toml`. Make sure this will run before trying to call the python code.
 
 99% of the methods you want to call are located in `lonpos/run.py` which then interops with `src/core.jl`. The other files are just helper methods and stuff.
 
-A simple example in python is shown in `go.py` and `go.jl`.
+A simple example is shown in `go.py` and `go.jl`.
 
 `blessings` is for fancy CMD line output and `pypng` is for saving the image.
 

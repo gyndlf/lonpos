@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - julia
+      - master
     tags: ['*']
   pull_request:
 concurrency:

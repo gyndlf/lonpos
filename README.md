@@ -1,6 +1,6 @@
 # Lonpos Solver
 
-[![Build Status](https://github.com/jrzingel/Lonpos.jl/actions/workflows/CI.yml/badge.svg?branch=julia)](https://github.com/jrzingel/lonpos/actions/workflows/CI.yml?query=branch%3Ajulia)
+[![Build Status](https://github.com/jrzingel/Lonpos.jl/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/jrzingel/lonpos/actions/workflows/CI.yml?query=branch%3Amaster)
 
 An algorithm that solves a little puzzle game where you must fit all the little pieces into a grid without
 leaving any gaps and using all the pieces. I found it really hard to do, so I wanted to create a bot to do it for me,

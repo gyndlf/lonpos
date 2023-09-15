@@ -20,9 +20,15 @@ however I wanted it to be more generic such as long rectangle of solutions. This
 See `pictures/` for all the solutions in various layouts. `solutions/` contains all the solutions in compressed numpy arrays, use `view()` to view them.
 
 ## Usage
-99% of the methods you want to call are located in `run.py` the other files are just helper methods and stuff. A 4 line example is in `go.py`
+The core algorithm of this program is written in Julia, however it can still be called from python. The disadvantage is that the setup to do this is more convoluted. 
 
-`numpy` is required for most methods, `blessings` is just for fancy CMD line output and `pypng` is for saving the image.
+`> julia` should be available system-wide and when running from python it will connect to the julia environment specified by `Project.toml`. Make sure this will run before trying to call the python code.
+
+99% of the methods you want to call are located in `lonpos/run.py` which then interops with `src/core.jl`. The other files are just helper methods and stuff.
+
+A simple example in python is shown in `go.py` and `go.jl`.
+
+`blessings` is for fancy CMD line output and `pypng` is for saving the image.
 
 If you find it useful let me know, as I'd love to hear about it
 

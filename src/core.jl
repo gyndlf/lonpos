@@ -75,7 +75,7 @@ function load_solutions(path::String)
     #return np.load(path)
 end
 
-
+# TODO: This is not optimal and can return permutations that are really symmetric
 function create_permutations(pieces::Vector{Piece}=nothing)::Vector{Vector{Piece}}
     """Create all the possible permutations (rotations and flips) of all given pieces.
     A list of a list of different ways"""
@@ -190,6 +190,7 @@ function compute(i::Integer, j::Integer, board::Board, perms::Vector{Vector{Piec
                             deleteat!(remaining, p_inx)
 
                             if length(remaining) <= stats["best_fit"]  # we're the best so far
+                                @debug "Placements" successful=stats["successful_placements"] total=stats["total_placements"]
                                 if length(remaining) < stats["best_fit"]  # its a new best
                                     stats["best_fit"] = length(remaining)
                                     stats["best_times"] = 0

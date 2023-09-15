@@ -7,6 +7,5 @@ include("structs.jl")
 include("core.jl")
 include("run.jl")
 
-
-export fast
+export fast, compute
 end

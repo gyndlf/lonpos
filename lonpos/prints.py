@@ -3,7 +3,7 @@
 # Print functions
 import blessings
 from numpy import ndarray
-import time
+from datetime import datetime
 
 
 def init_print() -> blessings.Terminal:
@@ -48,8 +48,8 @@ def print_remaining(term: blessings.Terminal, pieces: list) -> None:
     for r in range(4):
         buff = ""
         for p in pieces:
-            if len(p[0]) > r:
-                buff += "".join([to_emoji(int(i), space=True) for i in p[0][r]] + ["  "] * (4 - len(p[0][r])))
+            if len(p[0].shape) > r:
+                buff += "".join([to_emoji(int(i), space=True) for i in p[0].shape[r]] + ["  "] * (4 - len(p[0].shape[r])))
             else:
                 buff += "".join(["  "] * 4)
             buff += " "
@@ -67,4 +67,4 @@ def print_place(term: blessings.Terminal, possible: bool, stats: dict) -> None:
     print(term.bold("{:,}".format(stats["successful_placements"])), "successful placements out of",
           term.bold("{:,}".format(stats["total_placements"])), "total placements with",
           term.bold("{:,}".format(stats["dead_ends"])), "dead ends")
-    print("Running time of", term.bold("{:.2f} mins".format((time.time() - stats["tic"]) / 60)))
+    print("Running time of", term.bold("{:.2f} mins".format((datetime.now() - stats["tic"]).seconds / 60)))

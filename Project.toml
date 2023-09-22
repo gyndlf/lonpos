@@ -4,6 +4,7 @@ authors = ["James Zingel <james@zingel.nz>"]
 version = "0.1.0"
 
 [deps]
+Crayons = "a8cc5b0e-0ffa-5ad4-8c14-923d3ee1735f"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 Debugger = "31a5f54b-26ea-5ae9-a837-f05ce5417438"
 Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"

@@ -3,13 +3,18 @@
 # Functions to run different versions of the algorithm
 # Only the core functions are imported into julia
 
-fast() = fast("")
 
-function fast(path::String)
+function fast()
     """Run the algorithm fast on the given board and pieces"""
     solutions = compute()
     println("Found $(length(solutions)) solutions")
     #save_solutions(solutions, path)
     @debug "Solutions" sol=solutions
 end
+
+function live()
+    """Solve the board live"""
+    return 0
+end
+
 

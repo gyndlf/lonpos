@@ -1,6 +1,6 @@
 # d7844
 
-using Crayons.Box
+using Crayons
 
 # update to static in the future
 mutable struct Piece{T<:Integer}
@@ -26,8 +26,21 @@ Base.size(b::Board, d::T) where {T<:Integer} = size(b)[d]
 Base.show(io::IO, p::Piece) = print(io, "Piece ", p.shape)
 
 const colormap = repeat(
-    [BLACK_BG, RED_BG, GREEN_BG, YELLOW_BG, BLUE_BG, MAGENTA_BG, CYAN_BG, LIGHT_RED_BG, LIGHT_MAGENTA_BG, LIGHT_GREEN_BG, LIGHT_BLUE_BG, LIGHT_YELLOW_BG, DARK_GRAY_BG, DEFAULT_BG],
-    2)
+    [crayon"bg:(0,0,0)",
+    crayon"bg:(230,25,75)",
+    crayon"bg:(60,180,75)",
+    crayon"bg:(255,255,25)",
+    crayon"bg:(0,130,200)",
+    crayon"bg:(245,130,48)",
+    crayon"bg:(145,30,180)",
+    crayon"bg:(70,240,240)",
+    crayon"bg:(240,50,230)",
+    crayon"bg:(250,190,212)",
+    crayon"bg:(0,128,128)",
+    crayon"bg:(220,190,255)",
+    crayon"bg:(170,110,40)",
+    Crayon(background=:default)
+    ], 2)
 function Base.show(io::IO, b::Board)  # use colours
     for l in 1:size(b.shape, 1)
         print(io, join(map(x->colormap[x+1]("  "), b.shape[l,:])), "\n")

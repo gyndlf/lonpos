@@ -11,9 +11,6 @@
 using Dates  # for now()
 
 
-
-
-
 function rotate(piece::Piece)::Piece
     """Rotate a piece 90 degrees clockwise""" 
     return newpiece(rotr90(piece.shape))
@@ -158,10 +155,9 @@ function compute(i::Integer, j::Integer, board::Board, perms::Vector{Vector{Piec
     return stats["solutions"]
 end
 
-
 solve() = solve([(x,y)->nothing, (x)->nothing, (x,y,z)->nothing])
-solve(f) = solve(Problem(create_pieces(), create_board(), f))  # use default problem
-function solve(problem::Problem)
+solve(f) = solve(Problem(create_pieces(), create_board()), f)  # use default problem
+function solve(problem::Problem, f)
     perms = create_permutations(problem.pieces)
     stats = Dict( # environment variables passed through
         "total_placements" => 0,
@@ -173,5 +169,5 @@ function solve(problem::Problem)
         "wait" => false,  # if we wait after each placement for the enter key
         "tic" => now(),  # start time
     )
-    return compute(1, 1, problem.board, perms, stats, problem.callback)
+    return compute(1, 1, problem.board, perms, stats, f)
 end

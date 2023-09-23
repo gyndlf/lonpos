@@ -2,6 +2,8 @@
 
 module Lonpos
 
+const INVALID_BOARD = 13
+
 # Includes
 include("structs.jl")
 include("core.jl")

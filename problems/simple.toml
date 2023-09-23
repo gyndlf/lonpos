@@ -1,0 +1,14 @@
+name = "Simple problem"
+version = "1.0"
+
+# 0 = valid
+# 1 = invlid (boundary)
+board = '''
+1
+01
+000001
+000011
+'''
+
+[pieces]
+ids = "common pieces"

@@ -1,6 +1,7 @@
 # d7844
 
 using Crayons
+using TOML
 
 # update to static in the future
 mutable struct Piece{T<:Integer}
@@ -15,16 +16,50 @@ end
 struct Problem{T<:Integer}
     pieces::Vector{Piece{T}}
     board::Board{T}
-    callback
 end
 
 # Constructors
 newpiece(shp::Matrix{T}) where {T<:Integer} = Piece(shp)
-newboard(shp::Matrix{T}) where {T<:Integer} = Board(shp)
-
-newboard(b::Board) = Board(copy(b.shape))  # is a copy
 newpiece(p::Piece) = Piece(copy(p.shape))
 
+newboard(shp::Matrix{T}) where {T<:Integer} = Board(shp)
+newboard(b::Board) = Board(copy(b.shape))  # is a copy
+function newboard(map::String)
+    lns = split(chomp(map), "\n")
+
+    width = length(lns[1])
+    warned = false
+    for l in lns
+        if length(l) !== length(lns[1])
+            if !warned
+                @warn "Board description is not rectangular... Automatically extending, but this could have unwanted effects."
+                warned = true
+            end
+            width = length(l)>width ? length(l) : width
+        end
+    end
+    
+    board = zeros(Int64, length(lns), width)
+    for (j,l) in enumerate(lns)
+        for (i,k) in enumerate(l)
+            board[j,i] = k!== '0' ? 1 : 0
+        end
+    end
+
+    return newboard(board * INVALID_BOARD)
+end
+
+
+
+function loadproblem(fname::AbstractString)::Problem
+    desc = TOML.parse(read(fname, String))
+
+    b = newboard(desc["board"])
+
+    return Problem(create_pieces(), b)
+end
+
+# Will be removed
 function create_pieces()::Vector{Piece{Int64}}
     """Create all of the valid pieces"""
     red = [1 1 1; 1 1 0]
@@ -44,10 +79,11 @@ function create_pieces()::Vector{Piece{Int64}}
     return map(newpiece, [red, cyan, orange, lime, white, yellow, blue, purple, pink, green, gray, salmon])
 end
 
+# Will be removed
 function create_board()::Board{Int64}
     """Create a board of correct dimensions"""
     b = zeros(Int64, (9, 9))
-    invalid = 13
+    invalid = INVALID_BOARD
     b[4, 3] = invalid  # missing middle piece
     b[7:end, 1] .= invalid  # bottom right corner
     b[8:end, 2] .= invalid
@@ -85,12 +121,17 @@ const colormap = repeat(
     crayon"bg:(170,110,40)",
     Crayon(background=:default)
     ], 2)
-function Base.show(io::IO, b::Board)  # use colours
+
+function print_color_matrix(io::IO, M::AbstractArray)
     s = "\n"
-    for l in 1:size(b.shape, 1)
-        s *= join(map(x->colormap[x+1]("  "), b.shape[l,:])) * "\n"
+    for l in 1:size(M, 1)
+        s *= join(map(x->colormap[x+1]("  "), M[l,:])) * "\n"
     end
     print(io, chomp(s))
+end
+
+function Base.show(io::IO, b::Board)  # use colours
+    print_color_matrix(io, b.shape) 
 end
 
 function Base.show(io::IO, p::Piece)
@@ -99,4 +140,42 @@ function Base.show(io::IO, p::Piece)
         s *= join(map(x->colormap[x+1]("  "), p.shape[l,:])) * "\n"
     end
     print(io, chomp(s))
+end
+
+function Base.show(io::IO, prob::Problem)
+    println(io, "Lonpos problem with $(typeof(prob.board)),", prob.board)
+
+    maxwidth = displaysize(stdout)[2] ÷ 2  # division as each pixel is "  "
+    i = 0
+    height = 0
+
+    print(io, "And $(typeof(prob.pieces[1])) ")
+    
+    toprint = Piece[]
+    for p in prob.pieces 
+        if i + size(p.shape, 2) + 1 >= maxwidth # flush the pieces
+            M = ones(Integer, height, i) * INVALID_BOARD
+            inx = 1
+            for p in toprint  # know the size is correct
+                M[1:size(p.shape,1), inx:size(p.shape,2)+inx-1] = p.shape
+                inx += size(p.shape,2) + 1
+            end
+            print_color_matrix(io, M)
+            i = 0
+            toprint = Piece[]
+            height = 0
+        end
+        # Add the piece to the stack
+        i += size(p.shape, 2) + 1
+        height = size(p.shape,1)>height ? size(p.shape,1) : height
+        push!(toprint, p)
+    end
+    # convert to a matrix and print that like the board
+    M = ones(Integer, height, i) * INVALID_BOARD
+    inx = 1
+    for p in toprint  # know the size is correct
+        M[1:size(p.shape,1), inx:size(p.shape,2)+inx-1] = p.shape
+        inx += size(p.shape,2) + 1
+    end
+    print_color_matrix(io, M)
 end

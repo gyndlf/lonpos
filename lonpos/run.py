@@ -3,7 +3,7 @@
 
 from .prints import init_print, print_board, print_place, print_remaining
 from . import core
-from .core import compute
+from .core import solve
 from .saveload import load_solutions, save_solutions
 from . import render
 
@@ -100,7 +100,7 @@ def live(path: str = None):
 
     try:
         with term.hidden_cursor():
-            solutions = compute(1, 1, callbacks=callbacks)
+            solutions = solve(callbacks)
     except KeyboardInterrupt:
         pass
     finally:
@@ -108,18 +108,6 @@ def live(path: str = None):
         if path is not None:
             save_solutions(solutions, path)
 
-
-def fast(path: str, board: np.ndarray = None, pieces: list = None):
-    """Run the algorithm fast on the given board and pieces"""
-    solutions = compute(1, 1)
-    print("Found", len(solutions), "solutions")
-    save_solutions(solutions, path)
-
-
-def solve(jobid: int, total_jobs: int = 4):
-    """Solve all the combinations fast by allocating through the jobid (0-3) usually"""
-    raise DeprecationWarning("Depreciated; use multithreading in julia instead")
-    
 
 def tessellate(root_dir: str, length: int = 50, hilbert: bool = False):
     """Combine many solutions into a tessellation grid of them all"""

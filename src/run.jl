@@ -48,7 +48,7 @@ function live()
     println(BOLD("Lonpos Solver v1.1"))
     println(create_board()) 
 
-    solutions = compute(callbacks=callbacks)
+    solutions = solve(callbacks)
 end
 
 

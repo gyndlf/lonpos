@@ -59,7 +59,7 @@ function load_solutions(path::String)
     #return np.load(path)
 end
 
-create_permutations()::Vector{Vector{Piece}} = create_permutations(create_pieces())
+create_permutations()::Vector{Vector{Piece}} = create_permutations(create_pieces())  # default
 function create_permutations(pieces::Vector{Piece{T}})::Vector{Vector{Piece}} where {T<:Integer}
     """Create all the possible permutations (rotations and flips) of all given pieces.
     A list of a list of different ways"""
@@ -105,33 +105,8 @@ function place(board::Board, piece::Piece, x::Integer, y::Integer):: Tuple{Bool,
     return false, newboard(board)
 end
 
-function compute(; i::Integer=1, j::Integer=1, callbacks=nothing)
-    # The initial call
-    b = create_board()
-    perms = create_permutations()
-    # environment variables passed through
-    stats = Dict(
-        "total_placements" => 0,
-        "successful_placements" => 0,
-        "dead_ends" => 0,
-        "best_fit" => 100,  # best number of pieces fitted in the board
-        "best_times" => 0,  # number of times the best fit was achieved
-        "solutions" => [],
-        "wait" => false,  # if we wait after each placement for the enter key
-        "tic" => now(),  # start time
-    )
-    return compute(i, j, b, perms, stats, callbacks=callbacks)
-end
-
-
-function compute(i::Integer, j::Integer, board::Board, perms::Vector{Vector{Piece}}, stats::Dict; callbacks=nothing)    
-    if callbacks === nothing
-        # Don't do anything by default, if needed another function will add them
-        callbacks = [(x,y)->nothing, (x)->nothing, (x,y,z)->nothing]
-    end
-
+function compute(i::Integer, j::Integer, board::Board, perms::Vector{Vector{Piece}}, stats::Dict, callbacks)    
     # TODO: Make this multithreaded
-
     # i=x, j=y
     while j <= size(board, 1)
         while i <= size(board, 2)
@@ -164,7 +139,7 @@ function compute(i::Integer, j::Integer, board::Board, perms::Vector{Vector{Piec
                                 @debug "Found solution" num=stats["best_times"] b
                                 push!(stats["solutions"], b)
                             else
-                                compute(i, j, b, remaining, stats, callbacks=callbacks)
+                                compute(i, j, b, remaining, stats, callbacks)
                                 # next loop will increment i,j for us
                             end
                         end
@@ -181,4 +156,22 @@ function compute(i::Integer, j::Integer, board::Board, perms::Vector{Vector{Piec
         i = 1
     end
     return stats["solutions"]
+end
+
+
+solve() = solve([(x,y)->nothing, (x)->nothing, (x,y,z)->nothing])
+solve(f) = solve(Problem(create_pieces(), create_board(), f))  # use default problem
+function solve(problem::Problem)
+    perms = create_permutations(problem.pieces)
+    stats = Dict( # environment variables passed through
+        "total_placements" => 0,
+        "successful_placements" => 0,
+        "dead_ends" => 0,
+        "best_fit" => 100,  # best number of pieces fitted in the board
+        "best_times" => 0,  # number of times the best fit was achieved
+        "solutions" => [],
+        "wait" => false,  # if we wait after each placement for the enter key
+        "tic" => now(),  # start time
+    )
+    return compute(1, 1, problem.board, perms, stats, problem.callback)
 end

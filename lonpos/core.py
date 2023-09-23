@@ -12,5 +12,5 @@ from julia import Lonpos
 # ENV["PYTHON"]= ".../bin/python3"
 
 
-def compute(i, j, callbacks=None):
-    Lonpos.compute(i=i, j=j, callbacks=callbacks)
+def solve(callbacks):
+    Lonpos.solve(callbacks)

@@ -11,6 +11,13 @@ struct Board{T<:Integer}
     shape::Matrix{T}
 end
 
+# Describe the problem to solve
+struct Problem{T<:Integer}
+    pieces::Vector{Piece{T}}
+    board::Board{T}
+    callback
+end
+
 # Constructors
 newpiece(shp::Matrix{T}) where {T<:Integer} = Piece(shp)
 newboard(shp::Matrix{T}) where {T<:Integer} = Board(shp)
@@ -37,9 +44,9 @@ function create_pieces()::Vector{Piece{Int64}}
     return map(newpiece, [red, cyan, orange, lime, white, yellow, blue, purple, pink, green, gray, salmon])
 end
 
-function create_board()::Board
+function create_board()::Board{Int64}
     """Create a board of correct dimensions"""
-    b = zeros(Integer, (9, 9))
+    b = zeros(Int64, (9, 9))
     invalid = 13
     b[4, 3] = invalid  # missing middle piece
     b[7:end, 1] .= invalid  # bottom right corner

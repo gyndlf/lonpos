@@ -5,5 +5,5 @@
 from . import core
 from . import prints
 from . import render
-from .run import view, live, fast, solve, tessellate
-__all__ = [view, live, fast, solve, tessellate]
+from .run import view, live, tessellate
+__all__ = [view, live, tessellate]

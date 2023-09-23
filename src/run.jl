@@ -23,12 +23,16 @@ function clear_lines(num)
 end
 
 function update_screen(b, stats, remain)
-    if stats["best_times"] % 100 == 0
+    if stats["best_times"] % 10 == 0
         clear_lines(size(b.shape, 1)+1)
-        println("Placement success rate of ", BOLD("$(stats["successful_placements"])/$(stats["total_placements"])"), 
-        " with ", BOLD("$(stats["dead_ends"])"), " dead ends in ", BOLD("$(round(now()-stats["tic"], Minute))"), ".")
-        print(b)
-        print("Fitted ", BOLD("$(12-length(remain))/12"), " pieces into the board ", BOLD("$(stats["best_times"])"), " times.")
+        print("Placement success rate of ", BOLD("$(stats["successful_placements"])/$(stats["total_placements"])"), 
+        " with ", BOLD("$(stats["dead_ends"])"), " dead ends in ", BOLD("$(round(now()-stats["tic"], Minute))"), ".")  # no newline as print(b) adds one at the beginning
+        println(b)
+        if length(remain) == 0
+            print("Found ", BOLD("$(length(stats["solutions"]))"), " solutions.")
+        else
+            print("Fitted ", BOLD("$(12-length(remain))/12"), " pieces into the board ", BOLD("$(stats["best_times"])"), " times.")
+        end
     end
 end
 
@@ -42,7 +46,7 @@ function live()
     ]
 
     println(BOLD("Lonpos Solver v1.1"))
-    print(create_board())
+    println(create_board()) 
 
     solutions = compute(callbacks=callbacks)
 end

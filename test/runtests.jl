@@ -10,6 +10,8 @@ const newpiece = Lonpos.newpiece
 const place = Lonpos.place
 const create_board = Lonpos.create_board
 const create_pieces = Lonpos.create_pieces
+const create_permutations = Lonpos.create_permutations
 
 @testset "python" include("python.jl")
 @testset "placements" include("placements.jl")
+@testset "permutations" include("permutations.jl")

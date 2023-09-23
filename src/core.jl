@@ -11,24 +11,7 @@
 using Dates  # for now()
 
 
-function create_pieces()::Vector{Piece}
-    """Create all of the valid pieces"""
-    red = [1 1 1; 1 1 0]
-    cyan = [1 1 1; 1 0 0; 1 0 0] .* 2
-    orange = [1 1 1; 1 0 0] .* 3
-    lime = ones(Integer, (2, 2)) .* 4
-    white = [1 1; 1 0] .* 5
-    yellow = [1 1 1; 1 0 1] .* 6
-    blue = [1 1 1 1; 1 0 0 0] .* 7
-    purple = ones(Integer, (4, 1)) .* 8
-    pink = [1 1 0; 0 1 1; 0 0 1] .* 9
-    green = [1 1 1 0; 0 0 1 1] .* 10
-    gray = [0 1 0; 1 1 1; 0 1 0] .* 11
-    salmon = [1 1 1 1; 0 1 0 0] .* 12
-    tee = [1 1 1; 0 1 0; 0 1 0] .* 14
-    zed = [0 0 1; 1 1 1; 1 0 0] .* 15
-    return map(newpiece, [red, cyan, orange, lime, white, yellow, blue, purple, pink, green, gray, salmon])
-end
+
 
 
 function rotate(piece::Piece)::Piece
@@ -50,13 +33,14 @@ end
 
 
 function is_in(l::Vector{Piece}, b::Piece)::Bool
-    """Return if b is in l"""
-    for p in l
-        if p == b
-            return True
+    dup = false
+    for pp in l 
+        if b == pp
+            dup = true
+            break
         end
     end
-    return False
+    return dup
 end
 
 
@@ -75,20 +59,17 @@ function load_solutions(path::String)
     #return np.load(path)
 end
 
-# TODO: This is not optimal and can return permutations that are really symmetric
-function create_permutations(pieces::Vector{Piece}=nothing)::Vector{Vector{Piece}}
+create_permutations()::Vector{Vector{Piece}} = create_permutations(create_pieces())
+function create_permutations(pieces::Vector{Piece{T}})::Vector{Vector{Piece}} where {T<:Integer}
     """Create all the possible permutations (rotations and flips) of all given pieces.
     A list of a list of different ways"""
     all_perms = Vector{Piece}[]
-    if pieces === nothing
-        pieces = create_pieces()
-    end
 
     for p in pieces
         perms = Piece[]
         for f in 1:2
             for r in 1:4
-                if !(p in perms)
+                if !is_in(perms, p)
                     push!(perms, p)
                 end
                 p = rotate(p)
@@ -99,26 +80,6 @@ function create_permutations(pieces::Vector{Piece}=nothing)::Vector{Vector{Piece
     end
     return all_perms
 end
-
-
-function create_board()::Board
-    """Create a board of correct dimensions"""
-    b = zeros(Integer, (9, 9))
-    invalid = 13
-    b[4, 3] = invalid  # missing middle piece
-    b[7:end, 1] .= invalid  # bottom right corner
-    b[8:end, 2] .= invalid
-    b[9, 3] = invalid
-    b[1, 7:end] .= invalid  # bottom left corner
-    b[2, 8:end] .= invalid
-    b[3, 9] = invalid
-    b[6, 8:end] .= invalid  # bottom
-    b[7, 7:end] .= invalid
-    b[8, 6:end] .= invalid
-    b[9, 6:end] .= invalid
-    return newboard(b)
-end
-
 
 function place(board::Board, piece::Piece, x::Integer, y::Integer):: Tuple{Bool, Board}
     """Place the piece in the board if possible"""
@@ -131,7 +92,7 @@ function place(board::Board, piece::Piece, x::Integer, y::Integer):: Tuple{Bool,
         size(piece)[1] + y - 1 > size(board)[1] ||
         x < 1 ||
         y < 1
-        return false, board  # Piece exceeds board space
+        return false, newboard(board)  # Piece exceeds board space
     end
 
     view = board.shape[y:y+size(piece)[1]-1, x:x+size(piece)[2]-1]
@@ -141,13 +102,13 @@ function place(board::Board, piece::Piece, x::Integer, y::Integer):: Tuple{Bool,
         temp.shape[y:y + size(piece)[1]-1, x:x + size(piece)[2]-1] += piece.shape
         return true, temp
     end
-    return false, board
+    return false, newboard(board)
 end
 
 function compute(; i::Integer=1, j::Integer=1, callbacks=nothing)
     # The initial call
     b = create_board()
-    perms = create_permutations(create_pieces())
+    perms = create_permutations()
     # environment variables passed through
     stats = Dict(
         "total_placements" => 0,

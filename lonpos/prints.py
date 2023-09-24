@@ -41,7 +41,7 @@ def print_board(term: blessings.Terminal, board: ndarray, placement: int) -> Non
     # print("➖" * 9)
 
 
-def print_remaining(term: blessings.Terminal, pieces: list) -> None:
+def print_remaining(term: blessings.Terminal, pieces: list, placement:int) -> None:
     """Print the remaining pieces to play"""
     # Assume every piece is 4x4 at max
     buffs = []
@@ -55,8 +55,8 @@ def print_remaining(term: blessings.Terminal, pieces: list) -> None:
             buff += " "
         buffs.append(buff)
 
-    print(term.move(28, 0))
-    print(term.move(28, 0))
+    print(term.move(placement, 0))
+    print(term.move(placement, 0))
     [print(term.clear_eol, i) for i in buffs]
 
 

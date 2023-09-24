@@ -2,11 +2,9 @@
 
 import lonpos
 
-# lonpos.view(0, 0)
 
-# lonpos.solve(0, 4)
-
-lonpos.live()
+lonpos.live("problems/simple.toml")
+lonpos.live("problems/original.toml")
 
 # lonpos.tessellate("solutions", 200, True)
 

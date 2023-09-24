@@ -143,7 +143,6 @@ function compute(i::Integer, j::Integer, board::Board, perms::Vector{Vector{Piec
                     end
                 end
                 # Unable to place any pieces. So this sim sucks
-                #@debug "Reached a dead end"
                 stats["dead_ends"] += 1
                 return stats["solutions"]
             end
@@ -155,8 +154,6 @@ function compute(i::Integer, j::Integer, board::Board, perms::Vector{Vector{Piec
     return stats["solutions"]
 end
 
-solve() = solve([(x,y)->nothing, (x)->nothing, (x,y,z)->nothing])
-solve(f) = solve(Problem(create_pieces(), create_board()), f)  # use default problem
 solve(prob::Problem) = solve(prob, [(x,y)->nothing, (x)->nothing, (x,y,z)->nothing])
 function solve(problem::Problem, f)
     perms = create_permutations(problem.pieces)

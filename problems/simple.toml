@@ -1,5 +1,6 @@
 name = "Simple problem"
-version = "1.0"
+desc = "Sample problem"
+version = 1.0
 
 # 0 = valid, 1 = invlid (boundary)
 # Only need to enter 0 for spacings

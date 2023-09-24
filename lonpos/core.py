@@ -12,5 +12,8 @@ from julia import Lonpos
 # ENV["PYTHON"]= ".../bin/python3"
 
 
-def solve(callbacks):
-    Lonpos.solve(callbacks)
+def solve(problem, callbacks):
+    return Lonpos.solve(problem, callbacks)
+
+def loadproblem(fname: str):
+    return Lonpos.loadproblem(fname)

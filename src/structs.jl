@@ -76,46 +76,8 @@ function loadproblem(fname::AbstractString)::Problem
     return prob
 end
 
-# Will be removed
-function create_pieces()::Vector{Piece{Int64}}
-    """Create all of the valid pieces"""
-    red = [1 1 1; 1 1 0]
-    cyan = [1 1 1; 1 0 0; 1 0 0] .* 2
-    orange = [1 1 1; 1 0 0] .* 3
-    lime = ones(Integer, (2, 2)) .* 4
-    white = [1 1; 1 0] .* 5
-    yellow = [1 1 1; 1 0 1] .* 6
-    blue = [1 1 1 1; 1 0 0 0] .* 7
-    purple = ones(Integer, (4, 1)) .* 8
-    pink = [1 1 0; 0 1 1; 0 0 1] .* 9
-    green = [1 1 1 0; 0 0 1 1] .* 10
-    gray = [0 1 0; 1 1 1; 0 1 0] .* 11
-    salmon = [1 1 1 1; 0 1 0 0] .* 12
-    tee = [1 1 1; 0 1 0; 0 1 0] .* 14
-    zed = [0 0 1; 1 1 1; 1 0 0] .* 15
-    return map(newpiece, [red, cyan, orange, lime, white, yellow, blue, purple, pink, green, gray, salmon])
-end
-
-# Will be removed
-function create_board()::Board{Int64}
-    """Create a board of correct dimensions"""
-    b = zeros(Int64, (9, 9))
-    invalid = INVALID_BOARD
-    b[4, 3] = invalid  # missing middle piece
-    b[7:end, 1] .= invalid  # bottom right corner
-    b[8:end, 2] .= invalid
-    b[9, 3] = invalid
-    b[1, 7:end] .= invalid  # bottom left corner
-    b[2, 8:end] .= invalid
-    b[3, 9] = invalid
-    b[6, 8:end] .= invalid  # bottom
-    b[7, 7:end] .= invalid
-    b[8, 6:end] .= invalid
-    b[9, 6:end] .= invalid
-    return newboard(b)
-end
-
 Base.:(==)(p::Piece, q::Piece) = p.shape == q.shape
+Base.:(==)(b::Board, bb::Board) = b.shape == bb.shape
 
 # useful to overload Base.size
 Base.size(p::Piece) = size(p.shape)

@@ -3,7 +3,7 @@
 
 from .prints import init_print, print_board, print_place, print_remaining
 from . import core
-from .core import solve
+from .core import solve, loadproblem
 from .saveload import load_solutions, save_solutions
 from . import render
 
@@ -68,19 +68,22 @@ def view(piece: int = 0, orientation: int = 0):
         print(term.move(15, 0))
 
 
-def live(path: str = None):
+def live(path: str):
     """Solve the board live"""
+    problem = loadproblem(path)
+    boardheight = problem.board.shape.shape[0]
+
     term = init_print()
     print(term.clear())
 
     print(term.bold("Lonpos Solver v1.0"), term.green('"It works now!"'))
 
     def best(b, stats, remaining):
-        print(term.move(16, 0))
+        print(term.move(boardheight+7, 0))
         print("Fitted", term.bold(str(12 - len(remaining)) + "/12"),
               "pieces into the board", term.bold(str(stats["best_times"])), "times")
-        print_board(term, b.shape, 17)
-        print_remaining(term, remaining)
+        print_board(term, b.shape, boardheight+8)
+        print_remaining(term, remaining, 2*boardheight+9)
 
     # Callback functions
     callbacks = [
@@ -92,21 +95,21 @@ def live(path: str = None):
     print(term.move(4, 0))
     print("Current board state:")
 
-    print(term.move(15, 0))
+    print(term.move(boardheight+6, 0))
     print("Best board so far:")
 
-    print(term.move(27, 0))
+    print(term.move(2*boardheight+8, 0))
     print("Remaining pieces:")
 
     try:
         with term.hidden_cursor():
-            solutions = solve(callbacks)
+            solutions = solve(problem, callbacks)
+        print(term.move(2*boardheight+13, 0))
+        print("Found", len(solutions), "solutions : ")
+        print_remaining(term, [[i] for i in solutions], 2*boardheight+14)
     except KeyboardInterrupt:
-        pass
-    finally:
-        print(term.move(32, 0))
-        if path is not None:
-            save_solutions(solutions, path)
+        print(term.move(2*boardheight+14, 0))
+        
 
 
 def tessellate(root_dir: str, length: int = 50, hilbert: bool = False):

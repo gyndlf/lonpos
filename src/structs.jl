@@ -18,45 +18,62 @@ struct Problem{T<:Integer}
     board::Board{T}
 end
 
-# Constructors
-newpiece(shp::Matrix{T}) where {T<:Integer} = Piece(shp)
-newpiece(p::Piece) = Piece(copy(p.shape))
+warned = false
 
-newboard(shp::Matrix{T}) where {T<:Integer} = Board(shp)
-newboard(b::Board) = Board(copy(b.shape))  # is a copy
-function newboard(map::String)
-    lns = split(chomp(map), "\n")
-
+function string_map_to_matrix(map::String)::Matrix{Int64}
+    lns = split(chomp(map), r"[;\n]")
     width = length(lns[1])
-    warned = false
     for l in lns
         if length(l) !== length(lns[1])
             if !warned
-                @warn "Board description is not rectangular... Automatically extending, but this could have unwanted effects."
-                warned = true
+                @warn "Piece/Board description is not rectangular... Automatically extending, but this could have unwanted effects."
+                global warned = true
             end
             width = length(l)>width ? length(l) : width
         end
     end
     
-    board = zeros(Int64, length(lns), width)
+    M = zeros(Int64, length(lns), width)
     for (j,l) in enumerate(lns)
         for (i,k) in enumerate(l)
-            board[j,i] = k!== '0' ? 1 : 0
+            M[j,i] = k!== '0' ? 1 : 0
         end
     end
-
-    return newboard(board * INVALID_BOARD)
+    return M
 end
 
+# Constructors
+newpiece(shp::Matrix{T}) where {T<:Integer} = Piece(shp)
+newpiece(p::Piece) = Piece(copy(p.shape))
+newpiece(map::String) = newpiece(map, 1)
+newpiece(map::String, id::Integer) = newpiece(string_map_to_matrix(map) .* id)
 
+newboard(shp::Matrix{T}) where {T<:Integer} = Board(shp)
+newboard(b::Board) = Board(copy(b.shape))  # is a copy
+newboard(map::String) = newboard(string_map_to_matrix(map) * INVALID_BOARD)
+
+function consistent(prob::Problem)::Bool
+    boardgaps = prod(size(prob.board.shape)) - (sum(prob.board.shape)÷13)
+    piecegaps = sum([sum(ifelse.(p.shape .!= 0, 1, 0)) for p in prob.pieces])
+    return boardgaps == piecegaps
+end
 
 function loadproblem(fname::AbstractString)::Problem
     desc = TOML.parse(read(fname, String))
 
-    b = newboard(desc["board"])
+    if (!haskey(desc, "board")) || (!haskey(desc, "pieces"))
+        return throw(ArgumentError("Missing board or piece description"))
+    end
 
-    return Problem(create_pieces(), b)
+    board = newboard(desc["board"])
+    pieces = [newpiece(map, i) for (i, map) in enumerate(desc["pieces"])]
+
+    # check that empty space of the board corresponds to the size of the pieces
+    prob = Problem(pieces, board)
+    if !consistent(prob)
+        @warn "Problem is inconsistent. The number of gaps in the board ($(prod(size(prob.board.shape)) - (sum(prob.board.shape)÷13))) is different to the total size of all pieces ($(sum([sum(ifelse.(p.shape .!= 0, 1, 0)) for p in prob.pieces])))."
+    end
+    return prob
 end
 
 # Will be removed

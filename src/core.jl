@@ -104,6 +104,7 @@ end
 
 function compute(i::Integer, j::Integer, board::Board, perms::Vector{Vector{Piece}}, stats::Dict, callbacks)    
     # TODO: Make this multithreaded
+    # TODO: Don't calculate the second permutations for duplicated pieces
     # i=x, j=y
     while j <= size(board, 1)
         while i <= size(board, 2)
@@ -123,7 +124,6 @@ function compute(i::Integer, j::Integer, board::Board, perms::Vector{Vector{Piec
                             deleteat!(remaining, p_inx)
 
                             if length(remaining) <= stats["best_fit"]  # we're the best so far
-                                @debug "Placements" successful=stats["successful_placements"] total=stats["total_placements"]
                                 if length(remaining) < stats["best_fit"]  # its a new best
                                     stats["best_fit"] = length(remaining)
                                     stats["best_times"] = 0
@@ -157,13 +157,14 @@ end
 
 solve() = solve([(x,y)->nothing, (x)->nothing, (x,y,z)->nothing])
 solve(f) = solve(Problem(create_pieces(), create_board()), f)  # use default problem
+solve(prob::Problem) = solve(prob, [(x,y)->nothing, (x)->nothing, (x,y,z)->nothing])
 function solve(problem::Problem, f)
     perms = create_permutations(problem.pieces)
     stats = Dict( # environment variables passed through
         "total_placements" => 0,
         "successful_placements" => 0,
         "dead_ends" => 0,
-        "best_fit" => 100,  # best number of pieces fitted in the board
+        "best_fit" => 1000,  # best number of pieces fitted in the board
         "best_times" => 0,  # number of times the best fit was achieved
         "solutions" => [],
         "wait" => false,  # if we wait after each placement for the enter key

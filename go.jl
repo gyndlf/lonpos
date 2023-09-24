@@ -4,4 +4,5 @@ using Pkg; Pkg.activate(".")
 
 using Lonpos
 
-live()
+prob = loadproblem("./problems/simple.toml")
+live(prob)

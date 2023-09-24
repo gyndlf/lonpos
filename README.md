@@ -20,7 +20,7 @@ however I wanted it to be more generic such as long rectangle of solutions. This
 See `pictures/` for all the solutions in various layouts. `solutions/` contains all the solutions in compressed numpy arrays, use `view()` to view them.
 
 ## Usage
-The core algorithm of this program is written in Julia, however it can still be called from python. The disadvantage is that the setup to do this is more convoluted. 
+The core algorithm of this program is written in Julia, and so it is recommended to use Julia as the methods are more optimized, however it can still be called from Python. The disadvantage is that the setup to do this is more convoluted. 
 
 `julia` should be available system-wide and when running from python it will connect to the julia environment specified by `Project.toml`. Make sure this will run before trying to call the python code.
 
@@ -28,8 +28,26 @@ The core algorithm of this program is written in Julia, however it can still be 
 
 A simple example is shown in `go.py` and `go.jl`.
 
-`blessings` is for fancy CMD line output and `pypng` is for saving the image.
+## Problem description
+Problems are described using the TOML format of a board and available pieces. A `1` corresponds to either the board boundary or the shape of the piece whereas a `0` denotes empty space.
 
-If you find it useful let me know, as I'd love to hear about it
+All trailing `0`s are optional and will automatically be inferred. To create a shape over two lines simply separate each line by a newline (`\n`) or `;`. An example problem is shown below using both methods.
+
+```TOML
+name = "Simple problem"
+version = "1.0"
+
+board = '''
+1
+01
+000001
+000011
+'''
+
+pieces = ["1;11", "1111", "1111;001", "11;1", "111;01"]
+```
+
+## Extra
+If you find this useful let me know, as I'd love to hear about it. Pull requests and issues are welcome.
 
 ![all solutions printed](pictures/printed.jpg)

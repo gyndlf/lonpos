@@ -36,19 +36,23 @@ function update_screen(b, stats, remain)
     end
 end
 
-function live()
+function live(prob::Problem)
     """Solve the board live. Clone of the python version"""
 
     callbacks = [
         (x,y)->nothing,  # do nothing on each potential placement
-        (x)->nothing,  # do nothing on each placement
+        (b)->nothing,  # do nothing on each placement
         update_screen
     ]
 
     println(BOLD("Lonpos Solver v1.1"))
-    println(create_board()) 
+    println(prob.board) 
 
-    solutions = solve(callbacks)
+    solutions = solve(prob, callbacks)
+    clear_lines(size(prob.board.shape, 1))
+
+    println("Done! Found $(length(solutions)) solutions")
+    println(solutions)
 end
 
 

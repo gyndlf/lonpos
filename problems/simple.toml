@@ -1,8 +1,10 @@
 name = "Simple problem"
 version = "1.0"
 
-# 0 = valid
-# 1 = invlid (boundary)
+# 0 = valid, 1 = invlid (boundary)
+# Only need to enter 0 for spacings
+# Use ';' for a newline
+
 board = '''
 1
 01
@@ -10,5 +12,6 @@ board = '''
 000011
 '''
 
-[pieces]
-ids = "common pieces"
+pieces = [
+    "1;11", "1111", "1111;001", "11;1", "111;01"
+    ]

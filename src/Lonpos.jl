@@ -9,5 +9,5 @@ include("structs.jl")
 include("core.jl")
 include("run.jl")
 
-export fast, solve, live
+export fast, solve, live, loadproblem
 end

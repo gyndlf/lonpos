@@ -8,9 +8,7 @@ as well as finding all possible solutions.
 
 ![my favourite solution](pictures/single.png)
 
-This algorithm finds 21,200 solutions to the puzzle which is exactly the same as what the outside of the box claims.
-Running it on four separate threads, it was able to find them all in under an hour
-(Pretty good considering there are millions of possibilities)
+This algorithm finds 21,200 solutions to the puzzle (which is what the outside of the box claims) in 10 minutes when running with 8 cores. This is far better than the old python version that took 2 hours...
 
 Also contained in `render.py` are a bunch of methods to visualise the solutions found, either in the command line or as an image.
 Using a [pesudo-hilbert curve](https://gist.github.com/vobenhen/c4455327589094c277e16641d6f4b7ab) these solutions can be laid

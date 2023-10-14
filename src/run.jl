@@ -22,15 +22,15 @@ function clear_lines(num)
     print("\r\u1b[K")  # clear that last line
 end
 
-function update_screen(b, stats, remain)
+function update_screen(b, res, remain)
     clear_lines(size(b.shape, 1)+1)
-    print("Placement success rate of ", BOLD("$(stats["successful_placements"])/$(stats["total_placements"])"), 
-    " with ", BOLD("$(stats["dead_ends"])"), " dead ends in ", BOLD("$(round(now()-stats["tic"], Minute))"), ".")  # no newline as print(b) adds one at the beginning
+    print("Placement success rate of ", BOLD("$(res.successful_placements)/$(res.total_placements)"), 
+    " with ", BOLD("$(res.dead_ends)"), " dead ends in ", BOLD("$(round(now()-res.tic, Minute))"), ".")  # no newline as print(b) adds one at the beginning
     println(b)
     if length(remain) == 0
-        print("Found ", BOLD("$(length(stats["solutions"]))"), " solutions.")
+        print("Found ", BOLD("$(length(res.solutions))"), " solutions.")
     else
-        print("Fitted ", BOLD("$(12-length(remain))/12"), " pieces into the board ", BOLD("$(stats["best_times"])"), " times.")
+        print("Fitted ", BOLD("$(12-length(remain))/12"), " pieces into the board ", BOLD("$(res.best_times)"), " times.")
     end
 end
 
@@ -46,11 +46,11 @@ function live(prob::Problem)
     println(BOLD("Lonpos Solver v1.1"))
     println(prob.board) 
 
-    solutions = solve(prob, callbacks)
+    result = solve(prob, callbacks)
     clear_lines(size(prob.board.shape, 1))
 
-    println("Done! Found $(length(solutions)) solutions")
-    println(solutions)
+    println("Done! Found $(length(result.solutions)) solutions")
+    println(result.solutions)
 end
 
 

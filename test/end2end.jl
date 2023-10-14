@@ -47,7 +47,7 @@ subproblems = Lonpos.distribute(prob)
 
 
 # END TO END
-sols = solve(prob)
+res = solve(prob)
 
-@test length(sols) == 2
+@test length(res.solutions) == 2
 

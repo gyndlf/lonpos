@@ -2,6 +2,7 @@
 
 using Crayons
 using TOML
+using Dates
 
 # update to static in the future
 mutable struct Piece{T<:Integer}
@@ -16,6 +17,17 @@ end
 struct Problem{T<:Integer}
     pieces::Vector{Piece{T}}
     board::Board{T}
+end
+
+# Contain all the solutions and stats. This is passed between branches
+mutable struct Result{T<:Integer}
+    total_placements::T
+    successful_placements::T
+    dead_ends::T
+    best_fit::T  # best number of pieces fitted in the board
+    best_times::T  # number of times the best fit was achieved
+    solutions:: Vector{Board}
+    tic:: DateTime  # problem start time
 end
 
 warned = false
@@ -51,6 +63,19 @@ newpiece(map::String, id::Integer) = newpiece(string_map_to_matrix(map) .* id)
 newboard(shp::Matrix{T}) where {T<:Integer} = Board(shp)
 newboard(b::Board) = Board(copy(b.shape))  # is a copy
 newboard(map::String) = newboard(string_map_to_matrix(map) * INVALID_BOARD)
+
+newresult() = Result(0, 0, 0, 1000, 0, Board[], now())
+
+function merge(results::Vector{Result{T}})::Result{T} where {T<:Integer}
+    # Merge all the results into one
+    combined = newresult()
+    combined.total_placements = sum([r.total_placements for r in results])
+    combined.successful_placements = sum([r.successful_placements for r in results])
+    combined.dead_ends = sum([r.dead_ends for r in results])
+    combined.best_times = sum([r.best_times for r in results])
+    combined.solutions = vcat([r.solutions for r in results]...)
+    return combined
+end
 
 function consistent(prob::Problem)::Bool
     boardgaps = prod(size(prob.board.shape)) - (sum(prob.board.shape)÷13)

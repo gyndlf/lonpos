@@ -102,7 +102,7 @@ function place(board::Board, piece::Piece, x::Integer, y::Integer)::Tuple{Bool, 
     return false, newboard(board)
 end
 
-function compute(i::Integer, j::Integer, board::Board, perms::Vector{Vector{Piece{T}}}, stats::Dict, callbacks) where {T<:Integer}
+function compute(i::Integer, j::Integer, board::Board, perms::Vector{Vector{Piece{T}}}, res::Result, callbacks)::Result where {T<:Integer}
     # TODO: Don't calculate the second permutations for duplicated pieces
     # i=x, j=y
     while j <= size(board, 1)
@@ -113,60 +113,50 @@ function compute(i::Integer, j::Integer, board::Board, perms::Vector{Vector{Piec
                     for piece in piece_potentials
                         poss, b = place(board, piece, i, j)
 
-                        stats["total_placements"] += 1
-                        stats["successful_placements"] += poss
-                        callbacks[1](poss, stats)  # callback for if the piece is placed
+                        res.total_placements += 1
+                        res.successful_placements += poss
+                        callbacks[1](poss, res)  # callback for if the piece is placed
 
                         if poss
                             callbacks[2](b)  # callback for if the piece is possible
                             remaining = copy(perms)
                             deleteat!(remaining, p_inx)
 
-                            if length(remaining) <= stats["best_fit"]  # we're the best so far
-                                if length(remaining) < stats["best_fit"]  # its a new best
-                                    stats["best_fit"] = length(remaining)
-                                    stats["best_times"] = 0
+                            if length(remaining) <= res.best_fit  # we're the best so far
+                                if length(remaining) < res.best_fit  # its a new best
+                                    res.best_fit = length(remaining)
+                                    res.best_times = 0
                                 end
-                                stats["best_times"] += 1
-                                callbacks[3](b, stats, remaining)  # callback for if the piece is the best
+                                res.best_times += 1
+                                callbacks[3](b, res, remaining)  # callback for if the piece is the best
                             end
 
                             if length(remaining) == 0  # We're done!
-                                @debug "Found solution" num=stats["best_times"] b
-                                push!(stats["solutions"], b)
+                                @debug "Found solution" num=res.best_times b
+                                push!(res.solutions, b)
                             else
-                                compute(i, j, b, remaining, stats, callbacks)
+                                compute(i, j, b, remaining, res, callbacks)
                                 # next loop will increment i,j for us
                             end
                         end
                     end
                 end
                 # Unable to place any pieces. So this sim sucks
-                stats["dead_ends"] += 1
-                return stats
+                res.dead_ends += 1
+                return res
             end
             i += 1
         end
         j += 1
         i = 1
     end
-    return stats
+    return res
 end
 
 solve(prob::Problem) = solve(prob, [(x,y)->nothing, (x)->nothing, (x,y,z)->nothing])
-function solve(problem::Problem, f)
+function solve(problem::Problem, f)::Result
     perms = create_permutations(problem.pieces)
-    stats = Dict( # environment variables passed through
-        "total_placements" => 0,
-        "successful_placements" => 0,
-        "dead_ends" => 0,
-        "best_fit" => 1000,  # best number of pieces fitted in the board
-        "best_times" => 0,  # number of times the best fit was achieved
-        "solutions" => [],
-        "wait" => false,  # if we wait after each placement for the enter key
-        "tic" => now(),  # start time
-    )
-    return compute(1, 1, problem.board, perms, stats, f)
+    return compute(1, 1, problem.board, perms, newresult(), f)
 end
 
 function distribute(problem::Problem)::Vector{Problem}
@@ -193,40 +183,26 @@ function distribute(problem::Problem)::Vector{Problem}
     return subproblems
 end
 
-function solveparallel(prob::Problem)
+function solveparallel(prob::Problem)::Result
     # Solve the problem using multithreading
     if nthreads() < 2
-        @warn "Multithreading arguement badly set. Only using 1 thread. Start julia with --threads=n to add more threads"
+        @warn "Multithreading arguement badly set. Only using 1 thread. Start julia with --threads=n to add more threads or --threads=auto to set automatically."
     end
-
-    original = Dict( # environment variables passed through
-        "total_placements" => 0,
-        "successful_placements" => 0,
-        "dead_ends" => 0,
-        "best_fit" => 1000,  # best number of pieces fitted in the board
-        "best_times" => 0,  # number of times the best fit was achieved
-        "solutions" => [],
-        "wait" => false,  # if we wait after each placement for the enter key
-        "tic" => now(),  # start time
-    )
 
     subprobs = distribute(prob)
     nprobs = length(subprobs)
-    results = fill(Dict(), nprobs)  # stats for each subproblem to mutate
+    results = fill(newresult(), nprobs)  # stats for each subproblem to mutate
 
     @info "Multithreading with $(nthreads()) threads chugging through $(length(subprobs)) subproblems"
 
     @threads for i = 1:nprobs
         subprob = subprobs[i]
-        results[i] = compute(1, 1, subprob.board, create_permutations(subprob.pieces), deepcopy(original), [(x,y)->nothing, (x)->nothing, (x,y,z)->nothing])
-        print("Worker $(threadid()) has finished subproblem $i finding $(length(results[i]["solutions"])) results.\n")
+        results[i] = compute(1, 1, subprob.board, create_permutations(subprob.pieces), newresult(), [(x,y)->nothing, (x)->nothing, (x,y,z)->nothing])
+        print("Worker $(threadid()) has finished subproblem $i finding $(length(results[i].solutions)) results.\n")
     end
 
     # merge results
-    for v in ["total_placements", "successful_placements", "dead_ends", "best_times"]
-        original[v] = sum([sp[v] for sp in results])
-    end
-    original["solutions"] = vcat([sp["solutions"] for sp in results]...)
-    @info "Found $(length(original["solutions"])) solutions."
-    return original
+    merged = merge(results)
+    @info "Found $(length(merged.solutions)) solutions."
+    return merged
 end

@@ -56,8 +56,7 @@ function load_solutions(path::String)
     #return np.load(path)
 end
 
-create_permutations()::Vector{Vector{Piece}} = create_permutations(create_pieces())  # default
-function create_permutations(pieces::Vector{Piece{T}})::Vector{Vector{Piece}} where {T<:Integer}
+function create_permutations(pieces::Vector{Piece{T}})::Vector{Vector{Piece{T}}} where {T<:Integer}
     """Create all the possible permutations (rotations and flips) of all given pieces.
     A list of a list of different ways"""
     all_perms = Vector{Piece}[]
@@ -78,7 +77,7 @@ function create_permutations(pieces::Vector{Piece{T}})::Vector{Vector{Piece}} wh
     return all_perms
 end
 
-function place(board::Board, piece::Piece, x::Integer, y::Integer):: Tuple{Bool, Board}
+function place(board::Board, piece::Piece, x::Integer, y::Integer)::Tuple{Bool, Board}
     """Place the piece in the board if possible"""
     # Offset the piece if it is L or +
     offset = findall(x->x!=0, piece.shape[1,:])[1]-1 # zero indexed (at least one solution otherwise the piece is badly shaped)
@@ -102,7 +101,7 @@ function place(board::Board, piece::Piece, x::Integer, y::Integer):: Tuple{Bool,
     return false, newboard(board)
 end
 
-function compute(i::Integer, j::Integer, board::Board, perms::Vector{Vector{Piece}}, stats::Dict, callbacks)    
+function compute(i::Integer, j::Integer, board::Board, perms::Vector{Vector{Piece{T}}}, stats::Dict, callbacks) where {T<:Integer}
     # TODO: Make this multithreaded
     # TODO: Don't calculate the second permutations for duplicated pieces
     # i=x, j=y
@@ -168,4 +167,28 @@ function solve(problem::Problem, f)
         "tic" => now(),  # start time
     )
     return compute(1, 1, problem.board, perms, stats, f)
+end
+
+function distribute(problem::Problem)::Vector{Problem}
+    # Turn one problem in a group of subproblems which can then be solved
+    # Each subproblem is the board with one of the pieces placed
+    subproblems = Problem[]
+
+    # Get initial nonzero position
+    x = findall(iszero, problem.board.shape[1,:])[1]
+    y = 1  # assume there is at least one nonzero in the first row
+
+    perms = create_permutations(problem.pieces)
+    for (permi, perm) in enumerate(perms)
+        for piece in perm
+            poss, b = place(problem.board, piece, x, y)
+            if poss
+                # Create a subproblem
+                remaining = copy(problem.pieces)
+                popat!(remaining, permi)
+                push!(subproblems, Problem(remaining, b))
+            end
+        end
+    end
+    return subproblems
 end

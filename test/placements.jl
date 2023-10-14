@@ -2,6 +2,7 @@
 # d7844 (julia)
 # Some tests from python imported into julia
 
+
 # Simple place
 b = newboard(zeros(Integer, (5,5)))
 p = newpiece(ones(Integer, (1,1)))
@@ -45,12 +46,14 @@ open(fname, "w") do f  # write all
 end
 problem = loadproblem(fname)
 
+
 # Board creation (check the pieces size is the same as the board gaps)
 b = problem.board
 p = problem.pieces
 size0 = sum([sum(po.shape)/i for (i, po) in enumerate(p)])
 size1 = prod(size(b)) - sum(b.shape)/13
 @test size0 == size1
+
 
 # Boundary place
 p1 = newpiece([1 0 0; 1 1 1] .*3)
@@ -60,6 +63,7 @@ poss1, nb = place(b, p1, 1, 5)
 p2 = newpiece([1 1 1; 1 0 1])
 poss, nb = place(b, p2, 0, 5)
 @test poss == false
+
 
 # Place the plus shaped piece
 poss1, b = place(b, p[1], 1, 1)
@@ -73,6 +77,7 @@ poss, b = place(b, p[10], 4, 1)
 poss, b = place(b, p[8], 3, 1)
 @test poss == false
 
+
 # Placement tests
 p1 = newpiece([1 1 1; 1 0 1])
 p2 = newpiece([0 0 1; 1 1 1] .*3)
@@ -82,3 +87,8 @@ poss, nb = place(b, p1, 6, 3)
 poss, nb = place(nb, p2, 9, 4)
 @test poss
 @test nb.shape[4,9] == 3
+
+
+# Subproblem distrubution tests
+subproblems = Lonpos.distribute(problem)
+@test length(subproblems) == 41

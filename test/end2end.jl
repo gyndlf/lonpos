@@ -40,6 +40,12 @@ prob = loadproblem(fname)
 @test Lonpos.consistent(prob)
 @debug prob
 
+
+# Subproblem test
+subproblems = Lonpos.distribute(prob)
+@test length(subproblems) == 6
+
+
 # END TO END
 sols = solve(prob)
 

@@ -9,6 +9,7 @@
 # char = filled space of piece corresponding to the char
 
 using Dates  # for now()
+using Base.Threads
 
 
 function rotate(piece::Piece)::Piece
@@ -102,7 +103,6 @@ function place(board::Board, piece::Piece, x::Integer, y::Integer)::Tuple{Bool, 
 end
 
 function compute(i::Integer, j::Integer, board::Board, perms::Vector{Vector{Piece{T}}}, stats::Dict, callbacks) where {T<:Integer}
-    # TODO: Make this multithreaded
     # TODO: Don't calculate the second permutations for duplicated pieces
     # i=x, j=y
     while j <= size(board, 1)
@@ -143,14 +143,14 @@ function compute(i::Integer, j::Integer, board::Board, perms::Vector{Vector{Piec
                 end
                 # Unable to place any pieces. So this sim sucks
                 stats["dead_ends"] += 1
-                return stats["solutions"]
+                return stats
             end
             i += 1
         end
         j += 1
         i = 1
     end
-    return stats["solutions"]
+    return stats
 end
 
 solve(prob::Problem) = solve(prob, [(x,y)->nothing, (x)->nothing, (x,y,z)->nothing])
@@ -191,4 +191,42 @@ function distribute(problem::Problem)::Vector{Problem}
         end
     end
     return subproblems
+end
+
+function solveparallel(prob::Problem)
+    # Solve the problem using multithreading
+    if nthreads() < 2
+        @warn "Multithreading arguement badly set. Only using 1 thread. Start julia with --threads=n to add more threads"
+    end
+
+    original = Dict( # environment variables passed through
+        "total_placements" => 0,
+        "successful_placements" => 0,
+        "dead_ends" => 0,
+        "best_fit" => 1000,  # best number of pieces fitted in the board
+        "best_times" => 0,  # number of times the best fit was achieved
+        "solutions" => [],
+        "wait" => false,  # if we wait after each placement for the enter key
+        "tic" => now(),  # start time
+    )
+
+    subprobs = distribute(prob)
+    nprobs = length(subprobs)
+    results = fill(Dict(), nprobs)  # stats for each subproblem to mutate
+
+    @info "Multithreading with $(nthreads()) threads chugging through $(length(subprobs)) subproblems"
+
+    @threads for i = 1:nprobs
+        subprob = subprobs[i]
+        results[i] = compute(1, 1, subprob.board, create_permutations(subprob.pieces), deepcopy(original), [(x,y)->nothing, (x)->nothing, (x,y,z)->nothing])
+        print("Worker $(threadid()) has finished subproblem $i finding $(length(results[i]["solutions"])) results.\n")
+    end
+
+    # merge results
+    for v in ["total_placements", "successful_placements", "dead_ends", "best_times"]
+        original[v] = sum([sp[v] for sp in results])
+    end
+    original["solutions"] = vcat([sp["solutions"] for sp in results]...)
+    @info "Found $(length(original["solutions"])) solutions."
+    return original
 end

@@ -102,7 +102,7 @@ function place(board::Board, piece::Piece, x::Integer, y::Integer)::Tuple{Bool, 
     return false, newboard(board)
 end
 
-function compute(i::Integer, j::Integer, board::Board, perms::Vector{Vector{Piece{T}}}, res::Result, callbacks)::Result where {T<:Integer}
+function compute(i::Integer, j::Integer, board::Board, perms::Vector{Vector{Piece{T}}}, res::Result, callbacks::Callback)::Result where {T<:Integer}
     # TODO: Don't calculate the second permutations for duplicated pieces
     # i=x, j=y
     while j <= size(board, 1)
@@ -115,10 +115,10 @@ function compute(i::Integer, j::Integer, board::Board, perms::Vector{Vector{Piec
 
                         res.total_placements += 1
                         res.successful_placements += poss
-                        callbacks[1](poss, res)  # callback for if the piece is placed
+                        callbacks.forallpieces(poss, res)  # callback for if the piece is placed
 
                         if poss
-                            callbacks[2](b)  # callback for if the piece is possible
+                            callbacks.ifpossible(b)  # callback for if the piece is possible
                             remaining = copy(perms)
                             deleteat!(remaining, p_inx)
 
@@ -128,12 +128,13 @@ function compute(i::Integer, j::Integer, board::Board, perms::Vector{Vector{Piec
                                     res.best_times = 0
                                 end
                                 res.best_times += 1
-                                callbacks[3](b, res, remaining)  # callback for if the piece is the best
+                                callbacks.ifbest(b, res, remaining)  # callback for if the piece is the best
                             end
 
                             if length(remaining) == 0  # We're done!
                                 @debug "Found solution" num=res.best_times b
                                 push!(res.solutions, b)
+                                callbacks.ifsolution(b, res)
                             else
                                 compute(i, j, b, remaining, res, callbacks)
                                 # next loop will increment i,j for us
@@ -153,10 +154,10 @@ function compute(i::Integer, j::Integer, board::Board, perms::Vector{Vector{Piec
     return res
 end
 
-solve(prob::Problem) = solve(prob, [(x,y)->nothing, (x)->nothing, (x,y,z)->nothing])
-function solve(problem::Problem, f)::Result
+solve(prob::Problem) = solve(prob, Callback())
+function solve(problem::Problem, c::Callback)::Result
     perms = create_permutations(problem.pieces)
-    return compute(1, 1, problem.board, perms, newresult(), f)
+    return compute(1, 1, problem.board, perms, newresult(), c)
 end
 
 function distribute(problem::Problem)::Vector{Problem}
@@ -191,7 +192,7 @@ function solveparallel(prob::Problem)::Result
 
     subprobs = distribute(prob)
     nprobs = length(subprobs)
-    results = fill(newresult(), nprobs)  # stats for each subproblem to mutate
+    results = Vector{Result}(undef, nprobs)  # stats for each subproblem to mutate
 
     @info "Multithreading with $(nthreads()) threads chugging through $(length(subprobs)) subproblems"
 

@@ -30,6 +30,25 @@ mutable struct Result{T<:Integer}
     tic:: DateTime  # problem start time
 end
 
+# Contains our code to callback during solving
+struct Callback
+    reentractlocker::Threads.ReentrantLock  # To halt the threads while processing the callback
+    forallpieces::Any  # (possible::Bool, result::Result)
+    ifpossible::Any  # (board::Board)
+    ifbest::Any # (board::Board, result::Result, remaining:Vector{Piece})
+    ifsolution::Any # (board::Board, result::Result)
+
+    function Callback(;
+            forallpieces=(x,y)->nothing,
+            ifpossible=(x)->nothing,
+            ifbest=(x,y,z)->nothing,
+            ifsolution=(x,y)->nothing,
+        )
+        new(Threads.ReentrantLock(), forallpieces, ifpossible, ifbest, ifsolution)
+    end
+end
+
+
 warned = false
 
 function string_map_to_matrix(map::String)::Matrix{Int64}

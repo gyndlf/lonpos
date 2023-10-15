@@ -1,7 +1,6 @@
 # d7844
 
 using Crayons
-using TOML
 using Dates
 
 # update to static in the future
@@ -20,31 +19,34 @@ struct Problem{T<:Integer}
 end
 
 # Contain all the solutions and stats. This is passed between branches
-mutable struct Result{T<:Integer}
-    total_placements::T
-    successful_placements::T
-    dead_ends::T
-    best_fit::T  # best number of pieces fitted in the board
-    best_times::T  # number of times the best fit was achieved
+mutable struct Result
+    total_placements::Int
+    successful_placements::Int
+    dead_ends::Int
+    best_fit::Int  # best number of pieces fitted in the board
+    best_times::Int  # number of times the best fit was achieved
     solutions:: Vector{Board}
     tic:: DateTime  # problem start time
+
+    function Result()
+        new(0, 0, 0, 1000, 0, Board[], now())
+    end
 end
 
-# Contains our code to callback during solving
-struct Callback
+# Contains our code to callback printing during solving
+mutable struct Callback
     reentractlocker::Threads.ReentrantLock  # To halt the threads while processing the callback
-    forallpieces::Any  # (possible::Bool, result::Result)
-    ifpossible::Any  # (board::Board)
     ifbest::Any # (board::Board, result::Result, remaining:Vector{Piece})
     ifsolution::Any # (board::Board, result::Result)
+    lasttime::Float64  # Last update
+    dt::Float64  # Min time between updates
 
     function Callback(;
-            forallpieces=(x,y)->nothing,
-            ifpossible=(x)->nothing,
             ifbest=(x,y,z)->nothing,
             ifsolution=(x,y)->nothing,
+            dt=0.1
         )
-        new(Threads.ReentrantLock(), forallpieces, ifpossible, ifbest, ifsolution)
+        new(Threads.ReentrantLock(), ifbest, ifsolution, 0.0, dt)
     end
 end
 
@@ -83,43 +85,6 @@ newboard(shp::Matrix{T}) where {T<:Integer} = Board(shp)
 newboard(b::Board) = Board(copy(b.shape))  # is a copy
 newboard(map::String) = newboard(string_map_to_matrix(map) * INVALID_BOARD)
 
-newresult() = Result(0, 0, 0, 1000, 0, Board[], now())
-
-function merge(results::Vector{Result{T}})::Result{T} where {T<:Integer}
-    # Merge all the results into one
-    combined = newresult()
-    combined.total_placements = sum([r.total_placements for r in results])
-    combined.successful_placements = sum([r.successful_placements for r in results])
-    combined.dead_ends = sum([r.dead_ends for r in results])
-    combined.best_times = sum([r.best_times for r in results])
-    combined.solutions = vcat([r.solutions for r in results]...)
-    return combined
-end
-
-function consistent(prob::Problem)::Bool
-    boardgaps = prod(size(prob.board.shape)) - (sum(prob.board.shape)÷13)
-    piecegaps = sum([sum(ifelse.(p.shape .!= 0, 1, 0)) for p in prob.pieces])
-    return boardgaps == piecegaps
-end
-
-function loadproblem(fname::AbstractString)::Problem
-    desc = TOML.parse(read(fname, String))
-
-    if (!haskey(desc, "board")) || (!haskey(desc, "pieces"))
-        return throw(ArgumentError("Missing board or piece description"))
-    end
-
-    board = newboard(desc["board"])
-    pieces = [newpiece(map, i) for (i, map) in enumerate(desc["pieces"])]
-
-    # check that empty space of the board corresponds to the size of the pieces
-    prob = Problem(pieces, board)
-    if !consistent(prob)
-        @warn "Problem is inconsistent. The number of gaps in the board ($(prod(size(prob.board.shape)) - (sum(prob.board.shape)÷13))) is different to the total size of all pieces ($(sum([sum(ifelse.(p.shape .!= 0, 1, 0)) for p in prob.pieces])))."
-    end
-    return prob
-end
-
 Base.:(==)(p::Piece, q::Piece) = p.shape == q.shape
 Base.:(==)(b::Board, bb::Board) = b.shape == bb.shape
 
@@ -128,6 +93,7 @@ Base.size(p::Piece) = size(p.shape)
 Base.size(b::Board) = size(b.shape)
 Base.size(b::Board, d::T) where {T<:Integer} = size(b)[d]
 
+# Overload printing methods
 const colormap = repeat(
     [crayon"bg:(0,0,0)",
     crayon"bg:(230,25,75)",
@@ -201,4 +167,8 @@ function Base.show(io::IO, prob::Problem)
         inx += size(p.shape,2) + 1
     end
     print_color_matrix(io, M)
+end
+
+function Base.show(io::IO, result::Result)
+    print(io, "Result with $(length(result.solutions)) solutions. Placed $(result.total_placements) pieces total, with $(result.successful_placements) being successful")
 end

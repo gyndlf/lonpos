@@ -34,10 +34,10 @@ function update_screen(b, res, remain)
     end
 end
 
+# Solve the board live. Single threaded and slow.
 function live(prob::Problem)
-    """Solve the board live. Clone of the python version"""
 
-    callbacks = Callback(ifbest=update_screen)
+    callbacks = Callback(; ifbest=update_screen)
 
     println(BOLD("Lonpos Solver v1.1"))
     println(prob.board) 

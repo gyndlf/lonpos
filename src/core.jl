@@ -115,10 +115,8 @@ function compute(i::Integer, j::Integer, board::Board, perms::Vector{Vector{Piec
 
                         res.total_placements += 1
                         res.successful_placements += poss
-                        callbacks.forallpieces(poss, res)  # callback for if the piece is placed
 
                         if poss
-                            callbacks.ifpossible(b)  # callback for if the piece is possible
                             remaining = copy(perms)
                             deleteat!(remaining, p_inx)
 
@@ -128,13 +126,13 @@ function compute(i::Integer, j::Integer, board::Board, perms::Vector{Vector{Piec
                                     res.best_times = 0
                                 end
                                 res.best_times += 1
-                                callbacks.ifbest(b, res, remaining)  # callback for if the piece is the best
+                                advance!(callbacks, :ifbest, (b, res, remaining))  # callback for if the piece is the best
                             end
 
                             if length(remaining) == 0  # We're done!
                                 @debug "Found solution" num=res.best_times b
                                 push!(res.solutions, b)
-                                callbacks.ifsolution(b, res)
+                                advance!(callbacks, :ifsolution, (b, res))
                             else
                                 compute(i, j, b, remaining, res, callbacks)
                                 # next loop will increment i,j for us
@@ -154,11 +152,6 @@ function compute(i::Integer, j::Integer, board::Board, perms::Vector{Vector{Piec
     return res
 end
 
-solve(prob::Problem) = solve(prob, Callback())
-function solve(problem::Problem, c::Callback)::Result
-    perms = create_permutations(problem.pieces)
-    return compute(1, 1, problem.board, perms, newresult(), c)
-end
 
 function distribute(problem::Problem)::Vector{Problem}
     # Turn one problem in a group of subproblems which can then be solved
@@ -184,26 +177,33 @@ function distribute(problem::Problem)::Vector{Problem}
     return subproblems
 end
 
-function solveparallel(prob::Problem)::Result
-    # Solve the problem using multithreading
-    if nthreads() < 2
-        @warn "Multithreading arguement badly set. Only using 1 thread. Start julia with --threads=n to add more threads or --threads=auto to set automatically."
+
+solve(prob::Problem; threaded=false) = solve(prob, defaultcallback(), threaded=threaded)
+function solve(problem::Problem, c::Callback; threaded=false)::Result
+    if threaded
+        # Solve the problem using multithreading
+        if nthreads() < 2
+            @warn "Multithreading arguement badly set. Only using 1 thread. Start julia with --threads=n to add more threads or --threads=auto to set automatically."
+        end
+
+        subprobs = distribute(problem)
+        nprobs = length(subprobs)
+        results = Vector{Result}(undef, nprobs)  # stats for each subproblem to mutate
+
+        @info "Multithreading with $(nthreads()) threads chugging through $(length(subprobs)) subproblems"
+
+        @threads for i = 1:nprobs
+            subprob = subprobs[i]
+            results[i] = compute(1, 1, subprob.board, create_permutations(subprob.pieces), Result(), c)
+            print("Worker $(threadid()) has finished subproblem $i finding $(length(results[i].solutions)) results.\n")
+        end
+
+        # merge results
+        merged = merge(results)
+        @info "Found $(length(merged.solutions)) solutions."
+        return merged
     end
 
-    subprobs = distribute(prob)
-    nprobs = length(subprobs)
-    results = Vector{Result}(undef, nprobs)  # stats for each subproblem to mutate
-
-    @info "Multithreading with $(nthreads()) threads chugging through $(length(subprobs)) subproblems"
-
-    @threads for i = 1:nprobs
-        subprob = subprobs[i]
-        results[i] = compute(1, 1, subprob.board, create_permutations(subprob.pieces), newresult(), [(x,y)->nothing, (x)->nothing, (x,y,z)->nothing])
-        print("Worker $(threadid()) has finished subproblem $i finding $(length(results[i].solutions)) results.\n")
-    end
-
-    # merge results
-    merged = merge(results)
-    @info "Found $(length(merged.solutions)) solutions."
-    return merged
+    perms = create_permutations(problem.pieces)
+    return compute(1, 1, problem.board, perms, Result(), c)
 end

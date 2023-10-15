@@ -6,6 +6,7 @@ const INVALID_BOARD = 13
 
 # Includes
 include("structs.jl")
+include("common.jl")
 include("core.jl")
 include("run.jl")
 

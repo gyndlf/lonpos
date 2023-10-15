@@ -25,28 +25,46 @@ mutable struct Result
     dead_ends::Int
     best_fit::Int  # best number of pieces fitted in the board
     best_times::Int  # number of times the best fit was achieved
-    solutions:: Vector{Board}
-    tic:: DateTime  # problem start time
+    solutions::Vector{Board}
+    tic::DateTime  # problem start time
+    duration::Float64  # how long the problem took in milliseconds
 
     function Result()
-        new(0, 0, 0, 1000, 0, Board[], now())
+        new(0, 0, 0, 1000, 0, Board[], now(), 0.0)
     end
 end
 
 # Hot Potato that is passed between branches and threads
 mutable struct Potato
     reentractlocker::Threads.ReentrantLock  # To halt the threads while processing the callback
-    ifbest::Any # (board::Board, result::Result, remaining:Vector{Piece})
-    ifsolution::Any # (board::Board, result::Result)
+    threaded::Bool  # if multithreaded
+    
+    # Function to call (usually printing of some sort)
+    # If multithreaded: (board::Board, potato::Potato, remaining:Vector{Piece})
+    # Otherwise:        (board::Board, result::Result, remaining:Vector{Piece})
+    func::Any
+
+    # Method to call if a worker finishes a Problem. (Usually a subproblem when mutlithreaded)
+    onfinish::Any   # (potato::Potato, problemindex::Int, result::Result)
+    # Both methods are threadsafe and called while all threads are locked
+
     lasttime::Float64  # Last update
     dt::Float64  # Min time between updates
+    tic::DateTime  # when we started solving all the problems
+
+    # global variables that are combined across threads
+    glo_total::Int
+    glo_successfull::Int
+    glo_numsols::Int
+    glo_dead_ends::Int
 
     function Potato(;
-            ifbest=(x,y,z)->nothing,
-            ifsolution=(x,y)->nothing,
-            dt=0.1
+            func=(w,x,y,z)->nothing,
+            onfinish=(x,y,z)->nothing,
+            dt=0.3,
+            threaded=false
         )
-        new(Threads.ReentrantLock(), ifbest, ifsolution, 0.0, dt)
+        new(Threads.ReentrantLock(), threaded, func, onfinish, 0.0, dt, now(), 0, 0, 0, 0)
     end
 end
 

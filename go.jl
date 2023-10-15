@@ -12,3 +12,4 @@ println(solve(prob, threaded=true))
 
 prob = loadproblem("./problems/original.toml")
 #live(prob)
+println(solve(prob, threaded=true))

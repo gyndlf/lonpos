@@ -1,6 +1,9 @@
 # Methods using the structures defined in `structs.jl`
 
 using TOML
+using Crayons.Box
+using Formatting
+
 
 # Merge all the results into one
 function merge(results::Vector{Result})::Result
@@ -39,25 +42,57 @@ function loadproblem(fname::AbstractString)::Problem
     return prob
 end
 
-# Process the :from the potato
-function advance!(potato::Potato, from::Symbol, vars)
+# Whats in the potato now?
+function eat!(potato::Potato, b::Board, res::Result, remaining::Vector)
     if time() > potato.dt + potato.lasttime  # update
-        lock(potato.reentractlocker) do
-            potato.lasttime = time()
-            if from == :ifbest
-                potato.ifbest(vars...)
-            elseif from == :ifsolution
-                potato.ifsolution(vars...)
-            else
-                @error "Unknown symbol!" from
+        if potato.threaded
+            lock(potato.reentractlocker) do
+                potato.glo_total += res.total_placements
+                potato.glo_successfull += res.successful_placements
+                potato.glo_dead_ends += res.dead_ends
+                potato.lasttime = time()
+
+                # Avoid double counting
+                res.total_placements = 0
+                res.successful_placements = 0
+                res.dead_ends = 0
+
+                potato.func(b, potato, remaining)
             end
+        else
+            potato.func(b, res, remaining)
         end
+    end
+end
+
+# A worker finished a problem!
+function finished(potato::Potato, i::Int, result::Result)
+    lock(potato.reentractlocker) do
+        potato.onfinish(potato, i, result)
     end
 end
 
 # Default callback
 function defaultpotato()::Potato
-    # Threadsafe default
-    return Potato()
+    # Threadsafe 
+
+    function ticker(b::Board, potato::Potato, remain)
+        clear_lines(1)
+        println("(Thread $(threadid())) Placement successrate of $(format(potato.glo_successfull, commas=true))/$(format(potato.glo_total, commas=true)) = ",
+            BOLD(string(round(potato.glo_successfull/potato.glo_total*100, digits=2)) * "%"), " of $(potato.glo_numsols) solutions. \t[",
+            string(round((now()-potato.tic).value/1000, digits=2)), " total seconds]")
+    end 
+
+    function finished(potato::Potato, i::Int, result::Result)
+        clear_lines(1)
+        potato.glo_numsols += length(result.solutions)
+        if length(result.solutions) > 1
+            print("    ", GREEN_FG("▶ "))
+        else
+            print("    ", RED_FG("▶ "))
+        end
+        println("Worker ", BOLD(string(threadid())), " finished subproblem #$i finding $(length(result.solutions)) solutions in ", ITALICS("$(result.duration/1000)"),  " seconds.\n")
+    end
+    return Potato(func=ticker, onfinish=finished, threaded=true)
 end
 

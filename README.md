@@ -2,25 +2,39 @@
 
 [![Build Status](https://github.com/jrzingel/Lonpos/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/jrzingel/lonpos/actions/workflows/CI.yml?query=branch%3Amaster)
 
-An algorithm that solves a little puzzle game where you must fit all the little pieces into a grid without
-leaving any gaps and using all the pieces. I found it really hard to do, so I wanted to create a bot to do it for me,
-as well as finding all possible solutions.
+An algorithm that solves a little puzzle games where you must fit all the little pieces into a grid without leaving any gaps and using all the pieces. The algorithm works through brute force in a depth-first-search system.
 
 ![my favourite solution](pictures/single.png)
 
-This algorithm finds 21,200 solutions to the puzzle (which is what the outside of the box claims) in 10 minutes when running with 8 cores. This is far better than the old python version that took 2 hours...
+For the puzzle shown above the algorithm finds all 21,200 solutions to the puzzle (which is what the outside of the box claims) in around 10 minutes when running with 8 cores. 
 
-Also contained in `render.py` are a bunch of methods to visualise the solutions found, either in the command line or as an image.
-Using a [pesudo-hilbert curve](https://gist.github.com/vobenhen/c4455327589094c277e16641d6f4b7ab) these solutions can be laid
-out on a grid where the most similar solutions are nearest to each other. This layout can be exactly a hilbert curve if a square is specified (sides length being a power of 2),
-however I wanted it to be more generic such as long rectangle of solutions. This means I could hypothetically print out all 21,200 solutions on a 3m roll.... 
-
-See `pictures/` for all the solutions in various layouts. `solutions/` contains all the solutions in compressed numpy arrays, use `view()` to view them.
+See `pictures/` for all the solutions of this specific puzzle in various layouts. `solutions/` contains all the solutions in legacy compressed numpy arrays, use `view()` to view them.
 
 ## Usage
-The core algorithm of this program is written in Julia, and so it is recommended to use Julia as the methods are more optimized, however it can still be called from Python. The disadvantage is that the setup to do this is more convoluted. 
+This algorithm was originally written in python but converted to julia for performance reasons. While python can still be used to call the julia code, it is highly recommended to simply use julia and python is no longer supported. 
 
-`julia` should be available system-wide and when running from python it will connect to the julia environment specified by `Project.toml`. Make sure this will run before trying to call the python code.
+### With Julia
+Running with julia can be done by simply activiting the package. An example session using the problem established by "simple.toml" can be done like so
+```julia
+bash> julia --proj=. --threads=auto
+
+julia> using Lonpos
+julia> prob = loadproblem("./problems/original.toml")
+...
+julia> solution = solve(prob, threaded=true)
+    ▶ Worker 3 finished subproblem #22 finding 0 solutions in 0.001 seconds.
+    ▶ Worker 1 finished subproblem #32 finding 78 solutions in 27.611 seconds.
+    ▶ Worker 2 finished subproblem #12 finding 65 solutions in 29.395 seconds.
+    ▶ Worker 1 finished subproblem #33 finding 72 solutions in 14.489 seconds.
+    ▶ Worker 3 finished subproblem #23 finding 484 solutions in 53.394 seconds.
+    ▶ Worker 1 finished subproblem #34 finding 166 solutions in 14.784 seconds.
+    ▶ Worker 4 finished subproblem #1 finding 318 solutions in 58.061 seconds.
+    ▶ Worker 2 finished subproblem #13 finding 178 solutions in 32.873 seconds.
+(Thread 3) Placement successrate of 14,915,498/192,168,935 = 7.76% of 1361 solutions. 	[71.59 total seconds]
+```
+
+### With Python
+If using the python methods the binary `julia` should be available system-wide and python will connect to the julia environment specified by `Project.toml`. Make sure this all works before trying to use the example python code...
 
 99% of the methods you want to call are located in `lonpos/run.py` which then interops with `src/core.jl`. The other files are just helper methods and stuff.
 

@@ -37,7 +37,7 @@ end
 # Solve the board live. Single threaded and slow.
 function live(prob::Problem)
 
-    callbacks = Potato(; ifbest=update_screen)
+    callbacks = Potato(; func=update_screen)
 
     println(BOLD("Lonpos Solver v1.1"))
     println(prob.board) 

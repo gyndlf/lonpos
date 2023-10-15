@@ -18,12 +18,6 @@ function rotate(piece::Piece)::Piece
 end
 
 
-function rotate!(piece::Piece)
-    """Rotate a piece 90 clockwise in place"""
-    piece.shape = rotr90(piece.shape)
-end
-
-
 function flip(piece::Piece)::Piece
     """Flip a piece 180 degrees"""
     return newpiece(reverse(piece.shape, dims=2))  # flip along the vertical line of symmetry
@@ -126,13 +120,13 @@ function compute(i::Integer, j::Integer, board::Board, perms::Vector{Vector{Piec
                                     res.best_times = 0
                                 end
                                 res.best_times += 1
-                                advance!(potato, :ifbest, (b, res, remaining))  # callback for if the piece is the best
+                                eat!(potato, b, res, remaining)  # callback for if the piece is the best
                             end
 
                             if length(remaining) == 0  # We're done!
                                 @debug "Found solution" num=res.best_times b
                                 push!(res.solutions, b)
-                                advance!(potato, :ifsolution, (b, res))
+                                eat!(potato, b, res, remaining)
                             else
                                 compute(i, j, b, remaining, res, potato)
                                 # next loop will increment i,j for us
@@ -142,6 +136,7 @@ function compute(i::Integer, j::Integer, board::Board, perms::Vector{Vector{Piec
                 end
                 # Unable to place any pieces. So this sim sucks
                 res.dead_ends += 1
+                res.duration = (now()-res.tic).value
                 return res
             end
             i += 1
@@ -149,6 +144,7 @@ function compute(i::Integer, j::Integer, board::Board, perms::Vector{Vector{Piec
         j += 1
         i = 1
     end
+    res.duration = (now()-res.tic).value
     return res
 end
 
@@ -181,6 +177,7 @@ end
 solve(prob::Problem; threaded=false) = solve(prob, defaultpotato(), threaded=threaded)
 function solve(problem::Problem, potato::Potato; threaded=false)::Result
     if threaded
+        potato.threaded = threaded  # sync
         # Solve the problem using multithreading
         if nthreads() < 2
             @warn "Multithreading arguement badly set. Only using 1 thread. Start julia with --threads=n to add more threads or --threads=auto to set automatically."
@@ -195,7 +192,7 @@ function solve(problem::Problem, potato::Potato; threaded=false)::Result
         @threads for i = 1:nprobs
             subprob = subprobs[i]
             results[i] = compute(1, 1, subprob.board, create_permutations(subprob.pieces), Result(), potato)
-            print("Worker $(threadid()) has finished subproblem $i finding $(length(results[i].solutions)) results.\n")
+            finished(potato, i, results[i])
         end
 
         # merge results

@@ -33,15 +33,15 @@ mutable struct Result
     end
 end
 
-# Contains our code to callback printing during solving
-mutable struct Callback
+# Hot Potato that is passed between branches and threads
+mutable struct Potato
     reentractlocker::Threads.ReentrantLock  # To halt the threads while processing the callback
     ifbest::Any # (board::Board, result::Result, remaining:Vector{Piece})
     ifsolution::Any # (board::Board, result::Result)
     lasttime::Float64  # Last update
     dt::Float64  # Min time between updates
 
-    function Callback(;
+    function Potato(;
             ifbest=(x,y,z)->nothing,
             ifsolution=(x,y)->nothing,
             dt=0.1

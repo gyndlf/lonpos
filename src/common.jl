@@ -39,15 +39,15 @@ function loadproblem(fname::AbstractString)::Problem
     return prob
 end
 
-# Process the :from callback
-function advance!(c::Callback, from::Symbol, vars)
-    if time() > c.dt + c.lasttime  # update
-        lock(c.reentractlocker) do
-            c.lasttime = time()
+# Process the :from the potato
+function advance!(potato::Potato, from::Symbol, vars)
+    if time() > potato.dt + potato.lasttime  # update
+        lock(potato.reentractlocker) do
+            potato.lasttime = time()
             if from == :ifbest
-                c.ifbest(vars...)
+                potato.ifbest(vars...)
             elseif from == :ifsolution
-                c.ifsolution(vars...)
+                potato.ifsolution(vars...)
             else
                 @error "Unknown symbol!" from
             end
@@ -56,8 +56,8 @@ function advance!(c::Callback, from::Symbol, vars)
 end
 
 # Default callback
-function defaultcallback()::Callback
+function defaultpotato()::Potato
     # Threadsafe default
-    return Callback()
+    return Potato()
 end
 

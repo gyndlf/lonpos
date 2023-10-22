@@ -18,7 +18,7 @@ end
 
 # If a given problem is consistent might have a solution
 function consistent(prob::Problem)::Bool
-    boardgaps = prod(size(prob.board.shape)) - (sum(prob.board.shape)÷13)
+    boardgaps = prod(size(prob.board.map)) - (sum(prob.board.map)÷13)
     piecegaps = sum([sum(ifelse.(p.shape .!= 0, 1, 0)) for p in prob.pieces])
     return boardgaps == piecegaps
 end
@@ -32,12 +32,13 @@ function loadproblem(fname::AbstractString)::Problem
     end
 
     board = newboard(desc["board"])
+    optional = newboard(string_map_to_matrix(desc["board"], key='?'))
     pieces = [newpiece(map, i) for (i, map) in enumerate(desc["pieces"])]
 
     # check that empty space of the board corresponds to the size of the pieces
-    prob = Problem(pieces, board)
+    prob = newproblem(pieces, board, optional)
     if !consistent(prob)
-        @warn "Problem is inconsistent. The number of gaps in the board ($(prod(size(prob.board.shape)) - (sum(prob.board.shape)÷13))) is different to the total size of all pieces ($(sum([sum(ifelse.(p.shape .!= 0, 1, 0)) for p in prob.pieces])))."
+        @warn "Problem is inconsistent. The number of gaps in the board ($(prod(size(prob.board.map)) - (sum(prob.board.map)÷13))) is different to the total size of all pieces ($(sum([sum(ifelse.(p.shape .!= 0, 1, 0)) for p in prob.pieces])))."
     end
     return prob
 end

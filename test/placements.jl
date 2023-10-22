@@ -13,7 +13,7 @@ poss, nb = place(b, p, 1, 1)
 
 # Offset place
 b = newboard(zeros(Int64, (5,5)))
-b.shape[1,1] = 1
+b.map[1,1] = 1
 p = newpiece([0 1 0; 1 1 1; 0 1 0])
 poss, nb = place(b, p, 2, 1)
 @test poss
@@ -51,7 +51,7 @@ problem = loadproblem(fname)
 b = problem.board
 p = problem.pieces
 size0 = sum([sum(po.shape)/i for (i, po) in enumerate(p)])
-size1 = prod(size(b)) - sum(b.shape)/13
+size1 = prod(size(b)) - sum(b.map)/13
 @test size0 == size1
 
 
@@ -86,7 +86,7 @@ poss, nb = place(b, p1, 6, 3)
 @debug nb
 poss, nb = place(nb, p2, 9, 4)
 @test poss
-@test nb.shape[4,9] == 3
+@test nb.map[4,9] == 3
 
 
 # Subproblem distrubution tests

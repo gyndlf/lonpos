@@ -6,15 +6,6 @@
 using Crayons.Box
 using Dates
 
-function fast()
-    """Run the algorithm fast on the given board and pieces"""
-    solutions = compute()
-    println("Found $(length(solutions)) solutions")
-    #save_solutions(solutions, path)
-    @debug "Solutions" sol=solutions
-end
-
-
 function clear_lines(num)
     for _ in 1:num
         print("\r\u1b[K\u1b[A")
@@ -23,7 +14,7 @@ function clear_lines(num)
 end
 
 function update_screen(b, res, remain)
-    clear_lines(size(b.shape, 1)+1)
+    clear_lines(size(b.map, 1)+1)
     print("Placement success rate of ", BOLD("$(res.successful_placements)/$(res.total_placements)"), 
     " with ", BOLD("$(res.dead_ends)"), " dead ends in ", BOLD("$(round(now()-res.tic, Minute))"), ".")  # no newline as print(b) adds one at the beginning
     println(b)
@@ -43,7 +34,7 @@ function live(prob::Problem)
     println(prob.board) 
 
     result = solve(prob, callbacks)
-    clear_lines(size(prob.board.shape, 1))
+    clear_lines(size(prob.board.map, 1))
 
     println("Done! Found $(length(result.solutions)) solutions")
     println(result.solutions)

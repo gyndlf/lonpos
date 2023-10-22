@@ -9,14 +9,14 @@ mutable struct Piece{T<:Integer}
 end
 
 struct Board{T<:Integer}
-    shape::Matrix{T}  # rename to filled::
-    # optional::Matrix{T}
+    map::Matrix{T}  
 end
 
 # Describe the problem to solve
 struct Problem{T<:Integer}
     pieces::Vector{Piece{T}}
     board::Board{T}
+    optional::Board{T}  # mask of optional boundaries
 end
 
 # Contain all the solutions and stats. This is passed between branches
@@ -72,7 +72,7 @@ end
 
 warned = false
 
-function string_map_to_matrix(map::String)::Matrix{Int64}
+function string_map_to_matrix(map::String; key='1')::Matrix{Int64}
     lns = split(chomp(map), r"[;\n]")
     width = length(lns[1])
     for l in lns
@@ -88,7 +88,7 @@ function string_map_to_matrix(map::String)::Matrix{Int64}
     M = zeros(Int64, length(lns), width)
     for (j,l) in enumerate(lns)
         for (i,k) in enumerate(l)
-            M[j,i] = k !== '0' ? 1 : 0
+            M[j,i] = k == key ? 1 : 0
         end
     end
     return M
@@ -101,15 +101,18 @@ newpiece(map::String) = newpiece(map, 1)
 newpiece(map::String, id::Integer) = newpiece(string_map_to_matrix(map) .* id)
 
 newboard(shp::Matrix{T}) where {T<:Integer} = Board(shp)
-newboard(b::Board) = Board(copy(b.shape))  # is a copy
+newboard(b::Board) = Board(copy(b.map))  # is a copy
 newboard(map::String) = newboard(string_map_to_matrix(map) * INVALID_BOARD)
 
+newproblem(p::Vector{Piece{T}}, b::Board{T}) where {T<:Integer} = Problem(p, b, newboard(zeros(eltype(b.map), size(b))))
+newproblem(p::Vector{Piece{T}}, b::Board{T}, m::Board{T}) where {T<:Integer} = Problem(p, b, m)
+
 Base.:(==)(p::Piece, q::Piece) = p.shape == q.shape
-Base.:(==)(b::Board, bb::Board) = b.shape == bb.shape
+Base.:(==)(b::Board, bb::Board) = b.map == bb.map
 
 # useful to overload Base.size
 Base.size(p::Piece) = size(p.shape)
-Base.size(b::Board) = size(b.shape)
+Base.size(b::Board) = size(b.map)
 Base.size(b::Board, d::T) where {T<:Integer} = size(b)[d]
 
 # Overload printing methods
@@ -139,7 +142,7 @@ function print_color_matrix(io::IO, M::AbstractArray)
 end
 
 function Base.show(io::IO, b::Board)  # use colours
-    print_color_matrix(io, b.shape) 
+    print_color_matrix(io, b.map) 
 end
 
 function Base.show(io::IO, p::Piece)
@@ -152,6 +155,7 @@ end
 
 function Base.show(io::IO, prob::Problem)
     println(io, "Lonpos problem with $(typeof(prob.board)),", prob.board)
+    println(io, "optional cells of,", newboard(prob.board.map + prob.optional.map))
 
     maxwidth = displaysize(stdout)[2] ÷ 2  # division as each pixel is "  "
     i = 0

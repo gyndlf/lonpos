@@ -21,7 +21,7 @@ function noislands(b::Board)
     # Find an island of ones, then set all connected ones to zero
     # Search for another island, if it exists
     count = 0
-    aux = copy(b.shape)
+    aux = copy(b.map)
     println(aux)
     for j in 1:size(aux, 1)
         for i in 1:size(aux, 2)
@@ -41,8 +41,3 @@ function noislands(b::Board)
     return true
 end
 
-
-function permutate(p::Problem)
-    ...
-
-    

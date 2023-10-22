@@ -86,11 +86,11 @@ function place(board::Board, piece::Piece, x::Integer, y::Integer)::Tuple{Bool, 
         return false, newboard(board)  # Piece exceeds board space
     end
 
-    view = board.shape[y:y+size(piece)[1]-1, x:x+size(piece)[2]-1]
+    view = board.map[y:y+size(piece)[1]-1, x:x+size(piece)[2]-1]
 
     if sum(view[piece.shape .!== 0]) == 0  # only replacing zeros with the piece
         temp = newboard(board)
-        temp.shape[y:y + size(piece)[1]-1, x:x + size(piece)[2]-1] += piece.shape
+        temp.map[y:y + size(piece)[1]-1, x:x + size(piece)[2]-1] += piece.shape
         return true, temp
     end
     return false, newboard(board)
@@ -101,7 +101,7 @@ function compute(i::Integer, j::Integer, board::Board, perms::Vector{Vector{Piec
     # i=x, j=y
     while j <= size(board, 1)
         while i <= size(board, 2)
-            if board.shape[j, i] == 0  # find the piece that goes here!
+            if board.map[j, i] == 0  # find the piece that goes here!
                 for p_inx in eachindex(perms)
                     piece_potentials = perms[p_inx]
                     for piece in piece_potentials
@@ -155,7 +155,7 @@ function distribute(problem::Problem)::Vector{Problem}
     subproblems = Problem[]
 
     # Get initial nonzero position
-    x = findall(iszero, problem.board.shape[1,:])[1]
+    x = findall(iszero, problem.board.map[1,:])[1]
     y = 1  # assume there is at least one nonzero in the first row
 
     perms = create_permutations(problem.pieces)
@@ -166,7 +166,7 @@ function distribute(problem::Problem)::Vector{Problem}
                 # Create a subproblem
                 remaining = copy(problem.pieces)
                 popat!(remaining, permi)
-                push!(subproblems, Problem(remaining, b))
+                push!(subproblems, newproblem(remaining, b))
             end
         end
     end

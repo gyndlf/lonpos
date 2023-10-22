@@ -9,7 +9,8 @@ mutable struct Piece{T<:Integer}
 end
 
 struct Board{T<:Integer}
-    shape::Matrix{T}
+    shape::Matrix{T}  # rename to filled::
+    # optional::Matrix{T}
 end
 
 # Describe the problem to solve
@@ -87,7 +88,7 @@ function string_map_to_matrix(map::String)::Matrix{Int64}
     M = zeros(Int64, length(lns), width)
     for (j,l) in enumerate(lns)
         for (i,k) in enumerate(l)
-            M[j,i] = k!== '0' ? 1 : 0
+            M[j,i] = k !== '0' ? 1 : 0
         end
     end
     return M

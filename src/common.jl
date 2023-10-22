@@ -91,7 +91,7 @@ function defaultpotato()::Potato
         else
             print("    ", RED_FG("▶ "))
         end
-        println("Worker ", BOLD(string(threadid())), " finished subproblem #$i finding $(length(result.solutions)) solutions in ", ITALICS("$(result.duration/1000)"),  " seconds.\n")
+        println("Worker ", BOLD(string(threadid())), " finished subproblem $i finding $(length(result.solutions)) solutions in ", ITALICS("$(result.duration/1000)"),  " seconds.\n")
     end
     return Potato(func=ticker, onfinish=finished, threaded=true)
 end

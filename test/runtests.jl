@@ -13,3 +13,4 @@ const create_permutations = Lonpos.create_permutations
 @testset "permutations" include("permutations.jl")
 @testset "end2end" include("end2end.jl")
 @testset "placements" include("placements.jl")
+@testset "discovery" include("discovery.jl")

@@ -9,6 +9,7 @@ include("structs.jl")
 include("common.jl")
 include("core.jl")
 include("run.jl")
+include("discover.jl")
 
 export fast, solve, solveparallel, live, loadproblem
 end

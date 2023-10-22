@@ -2,7 +2,7 @@ name = "Simple problem"
 desc = "Sample problem"
 version = 1.0
 
-# 0 = valid, 1 = invlid (boundary)
+# 0 = valid, 1 = invalid (boundary)
 # Only need to enter 0 for spacings
 # Use ';' for a newline
 

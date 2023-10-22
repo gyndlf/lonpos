@@ -17,19 +17,19 @@ This algorithm was originally written in python but converted to julia for perfo
 Running with julia can be done by simply activiting the package. An example session using the problem established by "simple.toml" can be done like so
 ```julia
 bash> julia --proj=. --threads=auto
-
+...
 julia> using Lonpos
 julia> prob = loadproblem("./problems/original.toml")
 ...
 julia> solution = solve(prob, threaded=true)
-    ▶ Worker 3 finished subproblem #22 finding 0 solutions in 0.001 seconds.
-    ▶ Worker 1 finished subproblem #32 finding 78 solutions in 27.611 seconds.
-    ▶ Worker 2 finished subproblem #12 finding 65 solutions in 29.395 seconds.
-    ▶ Worker 1 finished subproblem #33 finding 72 solutions in 14.489 seconds.
-    ▶ Worker 3 finished subproblem #23 finding 484 solutions in 53.394 seconds.
-    ▶ Worker 1 finished subproblem #34 finding 166 solutions in 14.784 seconds.
-    ▶ Worker 4 finished subproblem #1 finding 318 solutions in 58.061 seconds.
-    ▶ Worker 2 finished subproblem #13 finding 178 solutions in 32.873 seconds.
+    ▶ Worker 3 finished subproblem 22 finding 0 solutions in 0.001 seconds.
+    ▶ Worker 1 finished subproblem 32 finding 78 solutions in 27.611 seconds.
+    ▶ Worker 2 finished subproblem 12 finding 65 solutions in 29.395 seconds.
+    ▶ Worker 1 finished subproblem 33 finding 72 solutions in 14.489 seconds.
+    ▶ Worker 3 finished subproblem 23 finding 484 solutions in 53.394 seconds.
+    ▶ Worker 1 finished subproblem 34 finding 166 solutions in 14.784 seconds.
+    ▶ Worker 4 finished subproblem 1 finding 318 solutions in 58.061 seconds.
+    ▶ Worker 2 finished subproblem 13 finding 178 solutions in 32.873 seconds.
 (Thread 3) Placement successrate of 14,915,498/192,168,935 = 7.76% of 1361 solutions. 	[71.59 total seconds]
 ```
 
